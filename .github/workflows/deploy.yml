@@ -34,5 +34,4 @@ jobs:
 
       - name: Deploy to server
         run: |
-          rsync -avz --delete dist/ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/var/www/homepage/
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "chmod -R 755 /var/www/homepage/"
+          rsync -avz --delete --chmod=D755,F644 dist/ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/var/www/homepage/
