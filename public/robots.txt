@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /*.mp4$
+Disallow: /*.webm$
+Disallow: /*.ogv$
 
 Sitemap: https://cyb1.org/sitemap-index.xml
