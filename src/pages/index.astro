@@ -11,51 +11,151 @@
 		<title>cyb1.org - nodca 的个人网站</title>
 	</head>
 	<body>
-		<video autoplay muted loop playsinline class="video-bg" data-nosnippet>
+		<video autoplay muted loop playsinline poster="/bg-poster.jpg" class="video-bg" data-nosnippet>
 			<source src="/bg.mp4" type="video/mp4" />
 		</video>
 		<div class="overlay"></div>
 
 		<main>
-			<h1>欢迎来到 cyb1.org</h1>
-			<p class="subtitle">探索我的数字空间</p>
+			<section class="hero">
+				<div class="avatar">
+					<!-- 这里将来可以换成你真实的头像图片，比如 <img src="/avatar.jpg" alt="nodca" /> -->
+					<span>N</span>
+				</div>
+				<h1>nodca</h1>
+				<div class="typewriter-container">
+					<span class="typewriter-text"></span><span class="cursor">|</span>
+				</div>
+				<div class="social-links">
+					<!-- 你可以在这里换成真实的链接 -->
+					<a href="https://github.com" target="_blank" aria-label="GitHub">
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-github"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+					</a>
+					</div>
+			</section>
 
-			<div class="cards">
-				<a href="https://blog.cyb1.org" class="card">
-					<div class="icon">📝</div>
-					<h2>博客</h2>
-					<p>记录生活与技术</p>
-				</a>
+			<section class="status-section">
+				<div class="status-card glass-panel">
+					<div class="status-dot"></div>
+					<p>最近正在研究 AI 写小说，探索叙事的新边界...</p>
+				</div>
+			</section>
 
-				<a href="https://s.cyb1.org" class="card">
-					<div class="icon">🔗</div>
-					<h2>短链工具</h2>
-					<p>快速生成短链接</p>
-				</a>
+			<section class="projects">
+				<div class="cards">
+					<a href="https://blog.cyb1.org" class="card glass-panel">
+						<div class="icon-wrapper">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pen-line"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/><path d="m15 5 3 3"/></svg>
+						</div>
+						<div class="card-content">
+							<h2>博客</h2>
+							<p>记录生活与技术</p>
+						</div>
+					</a>
 
-				<a href="https://owl.cyb1.org" class="card">
-					<div class="icon">🦉</div>
-					<h2>ServerOwl</h2>
-					<p>智能服务器运维</p>
-				</a>
+					<a href="https://s.cyb1.org" class="card glass-panel">
+						<div class="icon-wrapper">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+						</div>
+						<div class="card-content">
+							<h2>短链工具</h2>
+							<p>快速生成短链接</p>
+						</div>
+					</a>
 
-				<a href="https://narration.cyb1.org" class="card">
-					<div class="icon">🎬</div>
-					<h2>AI Narration</h2>
-					<p>动漫AI解说工作站</p>
-				</a>
+					<a href="https://owl.cyb1.org" class="card glass-panel">
+						<div class="icon-wrapper">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-server"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+						</div>
+						<div class="card-content">
+							<h2>ServerOwl</h2>
+							<p>智能服务器运维</p>
+						</div>
+					</a>
 
-				<a href="http://38.76.207.72:3000" class="card">
-					<div class="icon">🔍</div>
-					<h2>GitSearch</h2>
-					<p>GitHub 热门项目情报中心</p>
-				</a>
-			</div>
+					<a href="https://narration.cyb1.org" class="card glass-panel">
+						<div class="icon-wrapper">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clapperboard"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/><path d="m6.2 5.3 3.1 3.9"/><path d="m12.4 3.4 3.1 4"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
+						</div>
+						<div class="card-content">
+							<h2>AI Narration</h2>
+							<p>动漫AI解说工作站</p>
+						</div>
+					</a>
+
+					<a href="http://38.76.207.72:3000" class="card glass-panel">
+						<div class="icon-wrapper">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-git-branch"><line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+						</div>
+						<div class="card-content">
+							<h2>GitSearch</h2>
+							<p>GitHub 热门项目情报中心</p>
+						</div>
+					</a>
+				</div>
+			</section>
 		</main>
+
+		<script>
+			const texts = [
+				"Developer & Creator.",
+				"Exploring AI Novel Writing.",
+				"Building tools that matter.",
+				"Welcome to cyb1.org."
+			];
+			const speed = 100; // 打字速度
+			const pause = 2000; // 句子之间的停顿
+			const textElement = document.querySelector(".typewriter-text");
+			let textIndex = 0;
+			let charIndex = 0;
+			let isDeleting = false;
+
+			function type() {
+				const currentText = texts[textIndex];
+
+				if (isDeleting) {
+					textElement.textContent = currentText.substring(0, charIndex - 1);
+					charIndex--;
+				} else {
+					textElement.textContent = currentText.substring(0, charIndex + 1);
+					charIndex++;
+				}
+
+				let typeSpeed = speed;
+
+				if (isDeleting) {
+					typeSpeed /= 2; // 删除速度快一倍
+				}
+
+				if (!isDeleting && charIndex === currentText.length) {
+					typeSpeed = pause;
+					isDeleting = true;
+				} else if (isDeleting && charIndex === 0) {
+					isDeleting = false;
+					textIndex = (textIndex + 1) % texts.length;
+					typeSpeed = 500; // 开始下一个句子前的停顿
+				}
+
+				setTimeout(type, typeSpeed);
+			}
+
+			// 启动打字机效果
+			setTimeout(type, 1000);
+		</script>
 	</body>
 </html>
 
 <style>
+	:root {
+		--glass-bg: rgba(20, 20, 20, 0.4); /* 更深的底色，增加与纯白文字的对比，透出视频 */
+		--glass-border: rgba(255, 255, 255, 0.08); /* 极细极暗的边框，保持克制 */
+		--glass-hover-bg: rgba(40, 40, 40, 0.6); /* 悬浮时稍亮，更有实体感 */
+		--glass-hover-border: rgba(255, 255, 255, 0.2); /* 悬浮时边框稍亮 */
+		--text-main: rgba(255, 255, 255, 0.95);
+		--text-muted: rgba(255, 255, 255, 0.6);
+		--accent-color: #fceea7; /* 呼应 Lemon Girl 的淡黄色 */
+	}
+
 	* {
 		margin: 0;
 		padding: 0;
@@ -63,16 +163,18 @@
 	}
 
 	html {
-		font-family: system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+		font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+		scroll-behavior: smooth;
 	}
 
 	body {
 		min-height: 100vh;
 		display: flex;
-		align-items: center;
+		align-items: flex-start; /* 改为从顶部开始，方便向下滚动 */
 		justify-content: center;
-		padding: 20px;
+		padding: 60px 20px;
 		overflow-x: hidden;
+		color: var(--text-main);
 	}
 
 	.video-bg {
@@ -94,96 +196,229 @@
 		left: 0;
 		width: 100%;
 		height: 100%;
-		background: rgba(0, 0, 0, 0.4);
+		background: radial-gradient(circle at center, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.6) 100%); /* 渐变遮罩，四周暗，中间稍亮 */
 		z-index: -1;
 	}
 
 	main {
-		text-align: center;
 		z-index: 1;
 		width: 100%;
-		max-width: 900px;
+		max-width: 800px;
+		display: flex;
+		flex-direction: column;
+		gap: 3rem; /* 各个 section 之间的间距 */
 	}
 
-	h1 {
-		color: white;
+	/* --- 通用毛玻璃面板样式 --- */
+	.glass-panel {
+		background: var(--glass-bg);
+		backdrop-filter: blur(16px);
+		-webkit-backdrop-filter: blur(16px);
+		border: 1px solid var(--glass-border);
+		border-radius: 20px;
+		transition: all 0.3s ease;
+	}
+
+	/* --- Hero Section (个人信息) --- */
+	.hero {
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		animation: fadeInDown 1s ease-out;
+	}
+
+	.avatar {
+		width: 90px;
+		height: 90px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+		backdrop-filter: blur(10px);
+		border: 1px solid var(--glass-border);
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		font-size: 2.5rem;
-		font-weight: 600;
-		margin-bottom: 0.5rem;
-		text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+		font-weight: 300;
+		color: var(--text-main);
+		margin-bottom: 1.5rem;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 	}
 
-	.subtitle {
-		color: rgba(255, 255, 255, 0.9);
+	.hero h1 {
+		font-size: 3rem;
+		font-weight: 700;
+		letter-spacing: -1px;
+		margin-bottom: 0.5rem;
+		text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+	}
+
+	.typewriter-container {
 		font-size: 1.1rem;
-		margin-bottom: 3rem;
-		text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+		color: var(--text-muted);
+		height: 1.5rem; /* 固定高度防止抖动 */
+		margin-bottom: 1.5rem;
+		font-weight: 300;
+		letter-spacing: 0.5px;
+	}
+
+	.cursor {
+		display: inline-block;
+		width: 2px;
+		animation: blink 1s step-end infinite;
+		color: var(--accent-color);
+		margin-left: 2px;
+	}
+
+	@keyframes blink {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0; }
+	}
+
+	.social-links {
+		display: flex;
+		gap: 1.5rem;
+	}
+
+	.social-links a {
+		color: var(--text-muted);
+		transition: all 0.3s ease;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.5rem;
+		border-radius: 50%;
+	}
+
+	.social-links a:hover {
+		color: var(--text-main);
+		transform: translateY(-3px);
+		background: rgba(255, 255, 255, 0.05);
+	}
+
+	/* --- Status Section (动态卡片) --- */
+	.status-section {
+		animation: fadeInUp 1s ease-out 0.2s both;
+	}
+
+	.status-card {
+		padding: 1rem 1.5rem;
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		font-size: 0.95rem;
+		color: var(--text-main);
+		font-weight: 300;
+	}
+
+	.status-dot {
+		width: 8px;
+		height: 8px;
+		background-color: var(--accent-color);
+		border-radius: 50%;
+		box-shadow: 0 0 10px var(--accent-color);
+		animation: pulse 2s infinite;
+		flex-shrink: 0;
+	}
+
+	@keyframes pulse {
+		0% { box-shadow: 0 0 0 0 rgba(252, 238, 167, 0.4); }
+		70% { box-shadow: 0 0 0 6px rgba(252, 238, 167, 0); }
+		100% { box-shadow: 0 0 0 0 rgba(252, 238, 167, 0); }
+	}
+
+	/* --- Projects Section (卡片网格) --- */
+	.projects {
+		animation: fadeInUp 1s ease-out 0.4s both;
 	}
 
 	.cards {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-		gap: 1.2rem;
-		justify-content: center;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 1.5rem;
 	}
 
 	.card {
-		background: rgba(255, 255, 255, 0.9);
-		backdrop-filter: blur(10px);
-		border-radius: 16px;
-		padding: 1.8rem 1.5rem;
+		padding: 1.8rem;
 		text-decoration: none;
 		color: inherit;
-		transition: transform 0.3s ease, box-shadow 0.3s ease;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start; /* 左对齐更显现代 */
+		position: relative;
+		overflow: hidden;
+	}
+
+	.card::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+		opacity: 0;
+		transition: opacity 0.4s ease;
 	}
 
 	.card:hover {
-		transform: translateY(-8px);
-		box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-		background: rgba(255, 255, 255, 1);
+		transform: translateY(-6px);
+		background: var(--glass-hover-bg);
+		border-color: var(--glass-hover-border);
+		box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 255, 255, 0.05) inset;
 	}
 
-	.icon {
-		font-size: 2.5rem;
-		margin-bottom: 0.8rem;
+	.card:hover::before {
+		opacity: 1;
 	}
 
-	.card h2 {
-		font-size: 1.1rem;
-		color: #333;
+	.icon-wrapper {
+		margin-bottom: 1.2rem;
+		color: var(--text-main);
+		opacity: 0.8;
+		transition: all 0.3s ease;
+		background: rgba(255, 255, 255, 0.05);
+		padding: 12px;
+		border-radius: 14px;
+		border: 1px solid rgba(255, 255, 255, 0.05);
+	}
+
+	.card:hover .icon-wrapper {
+		opacity: 1;
+		transform: scale(1.1);
+		color: var(--accent-color);
+		border-color: rgba(252, 238, 167, 0.2);
+	}
+
+	.card-content h2 {
+		font-size: 1.2rem;
+		font-weight: 600;
 		margin-bottom: 0.4rem;
+		letter-spacing: -0.3px;
 	}
 
-	.card p {
-		color: #666;
+	.card-content p {
+		color: var(--text-muted);
 		font-size: 0.85rem;
+		line-height: 1.4;
+		font-weight: 300;
 	}
 
-	@media (max-width: 480px) {
-		h1 {
-			font-size: 1.8rem;
-		}
+	/* --- Animations --- */
+	@keyframes fadeInDown {
+		from { opacity: 0; transform: translateY(-20px); }
+		to { opacity: 1; transform: translateY(0); }
+	}
 
-		.subtitle {
-			font-size: 1rem;
-			margin-bottom: 2rem;
-		}
+	@keyframes fadeInUp {
+		from { opacity: 0; transform: translateY(20px); }
+		to { opacity: 1; transform: translateY(0); }
+	}
 
-		.cards {
-			grid-template-columns: repeat(2, 1fr);
-			gap: 0.8rem;
-		}
-
-		.card {
-			padding: 1.2rem 1rem;
-		}
-
-		.icon {
-			font-size: 2rem;
-		}
-
-		.card h2 {
-			font-size: 1rem;
-		}
+	@media (max-width: 600px) {
+		body { padding: 40px 15px; }
+		.hero h1 { font-size: 2.5rem; }
+		.cards { grid-template-columns: 1fr; } /* 移动端单列 */
+		.card { padding: 1.5rem; }
 	}
 </style>
