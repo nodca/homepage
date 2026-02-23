@@ -416,9 +416,49 @@
 	}
 
 	@media (max-width: 600px) {
-		body { padding: 40px 15px; }
+		body { 
+			padding: 40px 15px; 
+			/* 手机端使用背景图，隐藏视频以解决比例和性能问题 */
+			background-image: url('/bg-poster.jpg');
+			background-size: cover;
+			background-position: center;
+			background-attachment: fixed;
+		}
+		
+		/* 隐藏视频 */
+		.video-bg {
+			display: none;
+		}
+
 		.hero h1 { font-size: 2.5rem; }
-		.cards { grid-template-columns: 1fr; } /* 移动端单列 */
-		.card { padding: 1.5rem; }
+		
+		/* 手机端强制双列布局，减小间距 */
+		.cards { 
+			grid-template-columns: repeat(2, 1fr); 
+			gap: 1rem;
+		} 
+		
+		/* 缩小卡片内边距和内容，使其在双列下不拥挤 */
+		.card { 
+			padding: 1.2rem; 
+		}
+
+		.icon-wrapper {
+			padding: 8px;
+			margin-bottom: 0.8rem;
+		}
+
+		.icon-wrapper svg {
+			width: 20px;
+			height: 20px;
+		}
+
+		.card-content h2 {
+			font-size: 1rem;
+		}
+
+		.card-content p {
+			font-size: 0.75rem;
+		}
 	}
 </style>
