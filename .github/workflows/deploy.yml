@@ -5,9 +5,22 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-homepage
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      NODE_VERSION: "20"
+      SERVER_HOST: ${{ secrets.SERVER_HOST }}
+      SERVER_PORT: ${{ secrets.SERVER_PORT }}
+      SERVER_USER: ${{ secrets.SERVER_USER }}
+      DEPLOY_PATH: /var/www/homepage/
 
     steps:
       - name: Checkout code
@@ -16,7 +29,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
       - name: Install dependencies
@@ -27,11 +40,13 @@ jobs:
 
       - name: Setup SSH
         run: |
-          mkdir -p ~/.ssh
+          install -m 700 -d ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+          ssh-keyscan -p "${SERVER_PORT:-22}" -H "$SERVER_HOST" >> ~/.ssh/known_hosts
 
       - name: Deploy to server
         run: |
-          rsync -avz --delete --chmod=D755,F644 dist/ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/var/www/homepage/
+          rsync -avz --delete --chmod=D755,F644 \
+            -e "ssh -p ${SERVER_PORT:-22}" \
+            dist/ "${SERVER_USER}@${SERVER_HOST}:${DEPLOY_PATH}"
