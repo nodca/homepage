@@ -53,9 +53,21 @@ memory_percent=$(awk '
   }
 ' /proc/meminfo)
 
+cpu_cores=$(nproc)
+memory_total_gb=$(awk '
+  /MemTotal:/ {
+    printf "%.1f", $2 / 1024 / 1024
+  }
+' /proc/meminfo)
+
 disk_percent=$(df -P / | awk 'NR == 2 { gsub(/%/, "", $5); printf "%.1f", $5 }')
 
-printf '{"cpu":%s,"memory":%s,"disk":%s}\n' "$cpu_percent" "$memory_percent" "$disk_percent"
+printf '{"cpu":%s,"memory":%s,"disk":%s,"cpuCores":%s,"totalMemoryGb":%s}\n' \
+  "$cpu_percent" \
+  "$memory_percent" \
+  "$disk_percent" \
+  "$cpu_cores" \
+  "$memory_total_gb"
 """
 
 
@@ -89,7 +101,7 @@ def load_config() -> dict[str, Any]:
     return config
 
 
-def run_metrics_command(command: list[str], *, input_text: str | None = None) -> tuple[bool, dict[str, float] | None, str | None]:
+def run_metrics_command(command: list[str], *, input_text: str | None = None) -> tuple[bool, dict[str, Any] | None, str | None]:
     completed = subprocess.run(
         command,
         input=input_text,
@@ -107,12 +119,18 @@ def run_metrics_command(command: list[str], *, input_text: str | None = None) ->
     except json.JSONDecodeError as exc:
         return False, None, f"Invalid metrics payload: {exc}"
 
-    metrics = {
-        "cpu": float(payload.get("cpu", 0.0)),
-        "memory": float(payload.get("memory", 0.0)),
-        "disk": float(payload.get("disk", 0.0)),
+    snapshot = {
+        "metrics": {
+            "cpu": float(payload.get("cpu", 0.0)),
+            "memory": float(payload.get("memory", 0.0)),
+            "disk": float(payload.get("disk", 0.0)),
+        },
+        "hardware": {
+            "cpuCores": int(payload.get("cpuCores", 0)),
+            "totalMemoryGb": float(payload.get("totalMemoryGb", 0.0)),
+        },
     }
-    return True, metrics, None
+    return True, snapshot, None
 
 
 def collect_node(node: dict[str, Any]) -> dict[str, Any]:
@@ -124,7 +142,7 @@ def collect_node(node: dict[str, Any]) -> dict[str, Any]:
     }
 
     if node.get("mode") == "local":
-        success, metrics, error_message = run_metrics_command(["bash", "-s"], input_text=METRICS_SCRIPT)
+        success, snapshot, error_message = run_metrics_command(["bash", "-s"], input_text=METRICS_SCRIPT)
     else:
         ssh_target = node.get("ssh_target")
         if not ssh_target:
@@ -148,21 +166,23 @@ def collect_node(node: dict[str, Any]) -> dict[str, Any]:
             ssh_target,
             "bash -s",
         ]
-        success, metrics, error_message = run_metrics_command(ssh_command, input_text=METRICS_SCRIPT)
+        success, snapshot, error_message = run_metrics_command(ssh_command, input_text=METRICS_SCRIPT)
 
-    if not success or metrics is None:
+    if not success or snapshot is None:
         print(f"[warn] {node['id']}: {error_message or 'Unknown error'}", flush=True)
         return {
             **public_data,
             "status": "offline",
             "metrics": None,
+            "hardware": None,
             "updatedAt": None,
         }
 
     return {
         **public_data,
         "status": "online",
-        "metrics": metrics,
+        "metrics": snapshot["metrics"],
+        "hardware": snapshot["hardware"],
         "updatedAt": now_iso(),
     }
 
@@ -234,6 +254,7 @@ def build_initial_payload(config: dict[str, Any]) -> dict[str, Any]:
                 "flag": node["flag"],
                 "status": "offline",
                 "metrics": None,
+                "hardware": None,
                 "updatedAt": None,
             }
             for node in config["nodes"]

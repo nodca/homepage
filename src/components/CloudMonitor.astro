@@ -32,9 +32,13 @@ const servers = [
 							<span class="flag-badge">
 								<img src={server.flag} alt={`${server.region} flag`} width="32" height="32" loading="lazy" />
 							</span>
-							<div>
+							<div class="server-copy">
 								<h3>{server.name}</h3>
-								<p>{server.region}</p>
+								<p class="server-specs">
+									<span data-server-cores>--</span> vCPU
+									<span class="server-spec-divider" aria-hidden="true">·</span>
+									<span data-server-memory-total>--</span> GB RAM
+								</p>
 							</div>
 						</div>
 						<div class="server-state" data-state="loading">
@@ -105,6 +109,10 @@ const servers = [
 		maximumFractionDigits: 1,
 		minimumFractionDigits: 1,
 	});
+	const memoryTotalFormatter = new Intl.NumberFormat("zh-CN", {
+		maximumFractionDigits: 1,
+		minimumFractionDigits: 1,
+	});
 
 	let nextPollTimer = null;
 
@@ -130,6 +138,10 @@ const servers = [
 		if (stateLabel) stateLabel.textContent = message;
 		const footer = card.querySelector("[data-server-updated]");
 		if (footer) footer.textContent = "Awaiting healthy sample";
+		const coresNode = card.querySelector("[data-server-cores]");
+		const memoryTotalNode = card.querySelector("[data-server-memory-total]");
+		if (coresNode) coresNode.textContent = "--";
+		if (memoryTotalNode) memoryTotalNode.textContent = "--";
 
 		for (const metricKey of metricKeys) {
 			const valueNode = card.querySelector(`[data-metric-value="${metricKey}"]`);
@@ -163,6 +175,19 @@ const servers = [
 
 		const footer = card.querySelector("[data-server-updated]");
 		if (footer) footer.textContent = formatTimestamp(server.updatedAt);
+		const coresNode = card.querySelector("[data-server-cores]");
+		const memoryTotalNode = card.querySelector("[data-server-memory-total]");
+		const cpuCores = Number(server.hardware?.cpuCores ?? 0);
+		const totalMemoryGb = Number(server.hardware?.totalMemoryGb ?? 0);
+		if (coresNode) {
+			coresNode.textContent = isOnline && Number.isFinite(cpuCores) && cpuCores > 0 ? String(cpuCores) : "--";
+		}
+		if (memoryTotalNode) {
+			memoryTotalNode.textContent =
+				isOnline && Number.isFinite(totalMemoryGb) && totalMemoryGb > 0
+					? memoryTotalFormatter.format(totalMemoryGb)
+					: "--";
+		}
 
 		for (const metricKey of metricKeys) {
 			const metricValue = Number(server.metrics?.[metricKey] ?? 0);
@@ -421,9 +446,22 @@ const servers = [
 		margin-bottom: 0.25rem;
 	}
 
-	.server-identity p {
-		font-size: 0.8rem;
+	.server-copy {
+		min-width: 0;
+	}
+
+	.server-specs {
+		font-size: 0.78rem;
 		color: var(--text-muted);
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.02em;
+		white-space: nowrap;
+	}
+
+	.server-spec-divider {
+		display: inline-block;
+		margin: 0 0.28rem;
+		color: rgba(255, 255, 255, 0.34);
 	}
 
 	.server-state {
