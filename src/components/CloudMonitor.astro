@@ -1,0 +1,577 @@
+---
+const servers = [
+	{ id: "hk-01", name: "Hong Kong 01", region: "Hong Kong", flag: "/flags/hk.svg" },
+	{ id: "hk-02", name: "Hong Kong 02", region: "Hong Kong", flag: "/flags/hk.svg" },
+	{ id: "us-01", name: "US 01", region: "United States", flag: "/flags/us.svg" },
+];
+---
+
+<section class="cloud-monitor" aria-labelledby="cloud-monitor-title" data-cloud-monitor>
+	<div class="monitor-shell glass-panel">
+		<div class="monitor-header">
+			<div class="monitor-copy">
+				<p class="monitor-kicker">Live Infrastructure</p>
+				<h2 id="cloud-monitor-title">Cloud Monitor</h2>
+				<p class="monitor-description">三台云服务器的实时负载摘要，持续轮询真实 CPU、内存与磁盘使用情况。</p>
+			</div>
+			<div class="monitor-meta">
+				<div class="monitor-live-pill" data-monitor-overall-state="loading">
+					<span class="monitor-live-dot" aria-hidden="true"></span>
+					<span data-monitor-overall-label>Collecting live data</span>
+				</div>
+				<p class="monitor-updated" data-last-updated>等待首个采样</p>
+			</div>
+		</div>
+
+		<div class="server-grid">
+			{servers.map((server) => (
+				<article class="server-card" data-server-id={server.id}>
+					<div class="server-card-glow" aria-hidden="true"></div>
+					<header class="server-topline">
+						<div class="server-identity">
+							<span class="flag-badge">
+								<img src={server.flag} alt={`${server.region} flag`} width="32" height="32" loading="lazy" />
+							</span>
+							<div>
+								<h3>{server.name}</h3>
+								<p>{server.region}</p>
+							</div>
+						</div>
+						<div class="server-state" data-state="loading">
+							<span class="server-state-dot" aria-hidden="true"></span>
+							<span data-server-state-label>Loading</span>
+						</div>
+					</header>
+
+					<div class="metric-list">
+						<div class="metric-row" data-metric-row>
+							<div class="metric-head">
+								<span>CPU</span>
+								<span data-metric-value="cpu">--%</span>
+							</div>
+							<div class="metric-bar-track" aria-hidden="true">
+								<div class="metric-bar-fill" data-metric-bar="cpu"></div>
+							</div>
+						</div>
+						<div class="metric-row" data-metric-row>
+							<div class="metric-head">
+								<span>Memory</span>
+								<span data-metric-value="memory">--%</span>
+							</div>
+							<div class="metric-bar-track" aria-hidden="true">
+								<div class="metric-bar-fill" data-metric-bar="memory"></div>
+							</div>
+						</div>
+						<div class="metric-row" data-metric-row>
+							<div class="metric-head">
+								<span>Disk</span>
+								<span data-metric-value="disk">--%</span>
+							</div>
+							<div class="metric-bar-track" aria-hidden="true">
+								<div class="metric-bar-fill" data-metric-bar="disk"></div>
+							</div>
+						</div>
+					</div>
+
+					<footer class="server-footer">
+						<span class="server-caption">Live telemetry</span>
+						<span data-server-updated>Waiting for refresh</span>
+					</footer>
+				</article>
+			))}
+		</div>
+	</div>
+</section>
+
+<script is:inline>
+	const monitorRoot = document.querySelector("[data-cloud-monitor]");
+	const overallLabel = monitorRoot?.querySelector("[data-monitor-overall-label]");
+	const overallState = monitorRoot?.querySelector("[data-monitor-overall-state]");
+	const updatedLabel = monitorRoot?.querySelector("[data-last-updated]");
+	const cards = new Map(
+		Array.from(monitorRoot?.querySelectorAll("[data-server-id]") ?? []).map((card) => [
+			card.getAttribute("data-server-id"),
+			card,
+		]),
+	);
+
+	const metricKeys = ["cpu", "memory", "disk"];
+	const timestampFormatter = new Intl.DateTimeFormat("zh-CN", {
+		hour: "2-digit",
+		minute: "2-digit",
+		second: "2-digit",
+	});
+	const percentFormatter = new Intl.NumberFormat("zh-CN", {
+		maximumFractionDigits: 1,
+		minimumFractionDigits: 1,
+	});
+
+	let nextPollTimer = null;
+
+	const formatPercent = (value) => `${percentFormatter.format(value)}%`;
+
+	const formatTimestamp = (value) => {
+		if (!value) return "等待首个采样";
+		const date = new Date(value);
+		if (Number.isNaN(date.getTime())) return "等待首个采样";
+		return `更新于 ${timestampFormatter.format(date)}`;
+	};
+
+	const setOverallState = (state, label) => {
+		if (overallState) overallState.setAttribute("data-monitor-overall-state", state);
+		if (overallLabel) overallLabel.textContent = label;
+	};
+
+	const setCardOffline = (card, message = "Unavailable") => {
+		card.classList.add("is-offline");
+		const state = card.querySelector(".server-state");
+		if (state) state.setAttribute("data-state", "offline");
+		const stateLabel = card.querySelector("[data-server-state-label]");
+		if (stateLabel) stateLabel.textContent = message;
+		const footer = card.querySelector("[data-server-updated]");
+		if (footer) footer.textContent = "Awaiting healthy sample";
+
+		for (const metricKey of metricKeys) {
+			const valueNode = card.querySelector(`[data-metric-value="${metricKey}"]`);
+			const barNode = card.querySelector(`[data-metric-bar="${metricKey}"]`);
+			if (valueNode) valueNode.textContent = "--%";
+			if (barNode) {
+				barNode.style.width = "0%";
+				barNode.setAttribute("data-tone", "idle");
+			}
+		}
+	};
+
+	const toneForMetric = (value) => {
+		if (value >= 85) return "alert";
+		if (value >= 65) return "warn";
+		return "normal";
+	};
+
+	const updateCard = (server) => {
+		const card = cards.get(server.id);
+		if (!card) return;
+
+		const isOnline = server.status === "online";
+		card.classList.toggle("is-offline", !isOnline);
+
+		const state = card.querySelector(".server-state");
+		if (state) state.setAttribute("data-state", isOnline ? "online" : "offline");
+
+		const stateLabel = card.querySelector("[data-server-state-label]");
+		if (stateLabel) stateLabel.textContent = isOnline ? "Live" : "Offline";
+
+		const footer = card.querySelector("[data-server-updated]");
+		if (footer) footer.textContent = formatTimestamp(server.updatedAt);
+
+		for (const metricKey of metricKeys) {
+			const metricValue = Number(server.metrics?.[metricKey] ?? 0);
+			const safeValue = Number.isFinite(metricValue) ? Math.max(0, Math.min(100, metricValue)) : 0;
+			const valueNode = card.querySelector(`[data-metric-value="${metricKey}"]`);
+			const barNode = card.querySelector(`[data-metric-bar="${metricKey}"]`);
+
+			if (valueNode) valueNode.textContent = isOnline ? formatPercent(safeValue) : "--%";
+			if (barNode) {
+				barNode.style.width = isOnline ? `${safeValue}%` : "0%";
+				barNode.setAttribute("data-tone", isOnline ? toneForMetric(safeValue) : "idle");
+			}
+		}
+	};
+
+	const scheduleNextPoll = (intervalSeconds = 15) => {
+		window.clearTimeout(nextPollTimer);
+		nextPollTimer = window.setTimeout(fetchStatus, Math.max(5, intervalSeconds) * 1000);
+	};
+
+	async function fetchStatus() {
+		setOverallState("loading", "Refreshing live data");
+
+		try {
+			const response = await fetch("/api/server-status", {
+				headers: { Accept: "application/json" },
+				cache: "no-store",
+			});
+			if (!response.ok) {
+				throw new Error(`Unexpected status: ${response.status}`);
+			}
+
+			const payload = await response.json();
+			const servers = Array.isArray(payload.servers) ? payload.servers : [];
+			const onlineCount = servers.filter((server) => server.status === "online").length;
+			const totalCount = servers.length || cards.size;
+
+			for (const server of servers) {
+				updateCard(server);
+			}
+
+			for (const [serverId, card] of cards.entries()) {
+				if (!servers.some((server) => server.id === serverId)) {
+					setCardOffline(card);
+				}
+			}
+
+			setOverallState(
+				onlineCount === totalCount ? "online" : "degraded",
+				onlineCount === totalCount
+					? "All systems reporting"
+					: `${onlineCount}/${totalCount} servers reporting`,
+			);
+
+			if (updatedLabel) {
+				updatedLabel.textContent = formatTimestamp(payload.generatedAt);
+			}
+
+			scheduleNextPoll(payload.refreshIntervalSeconds ?? 15);
+		} catch (error) {
+			console.error("Failed to load server status", error);
+			setOverallState("offline", "Live data temporarily unavailable");
+			if (updatedLabel) {
+				updatedLabel.textContent = "暂时无法刷新，正在重试";
+			}
+			for (const [, card] of cards.entries()) {
+				setCardOffline(card);
+			}
+			scheduleNextPoll(15);
+		}
+	}
+
+	if (monitorRoot) {
+		fetchStatus();
+	}
+</script>
+
+<style>
+	.cloud-monitor {
+		animation: monitorFadeInUp 1s ease-out 0.3s both;
+	}
+
+	@keyframes monitorFadeInUp {
+		from { opacity: 0; transform: translateY(20px); }
+		to { opacity: 1; transform: translateY(0); }
+	}
+
+	.monitor-shell {
+		position: relative;
+		padding: 1.6rem;
+		overflow: hidden;
+		background:
+			radial-gradient(circle at top left, rgba(252, 238, 167, 0.12), transparent 34%),
+			linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
+	}
+
+	.monitor-shell::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), transparent 45%);
+		pointer-events: none;
+	}
+
+	.monitor-header {
+		position: relative;
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1.5rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.monitor-copy {
+		max-width: 36rem;
+	}
+
+	.monitor-kicker {
+		font-size: 0.72rem;
+		text-transform: uppercase;
+		letter-spacing: 0.16em;
+		color: rgba(252, 238, 167, 0.76);
+		margin-bottom: 0.7rem;
+	}
+
+	.monitor-header h2 {
+		font-size: clamp(1.6rem, 2vw, 2rem);
+		letter-spacing: -0.04em;
+		margin-bottom: 0.45rem;
+	}
+
+	.monitor-description {
+		color: var(--text-muted);
+		font-size: 0.95rem;
+		line-height: 1.65;
+		max-width: 34rem;
+	}
+
+	.monitor-meta {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 0.7rem;
+		min-width: 12.5rem;
+	}
+
+	.monitor-live-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.55rem;
+		padding: 0.5rem 0.8rem;
+		border-radius: 999px;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		background: rgba(255, 255, 255, 0.04);
+		font-size: 0.78rem;
+		color: var(--text-main);
+		white-space: nowrap;
+	}
+
+	.monitor-live-dot {
+		width: 0.55rem;
+		height: 0.55rem;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.3);
+		box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.14);
+		animation: pulse 2s infinite;
+	}
+
+	.monitor-live-pill[data-monitor-overall-state="online"] .monitor-live-dot {
+		background: var(--accent-color);
+		box-shadow: 0 0 12px rgba(252, 238, 167, 0.45);
+	}
+
+	.monitor-live-pill[data-monitor-overall-state="degraded"] .monitor-live-dot {
+		background: #ffd27d;
+		box-shadow: 0 0 12px rgba(255, 210, 125, 0.34);
+	}
+
+	.monitor-live-pill[data-monitor-overall-state="offline"] .monitor-live-dot {
+		background: #ff8d8d;
+		box-shadow: 0 0 12px rgba(255, 141, 141, 0.32);
+	}
+
+	.monitor-updated {
+		font-size: 0.78rem;
+		color: var(--text-muted);
+	}
+
+	.server-grid {
+		position: relative;
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 1rem;
+	}
+
+	.server-card {
+		position: relative;
+		padding: 1.15rem;
+		border-radius: 18px;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		background: rgba(12, 12, 12, 0.22);
+		overflow: hidden;
+		min-height: 16rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.1rem;
+	}
+
+	.server-card-glow {
+		position: absolute;
+		inset: auto auto 0 -12%;
+		width: 9rem;
+		height: 9rem;
+		background: radial-gradient(circle, rgba(252, 238, 167, 0.16), transparent 72%);
+		opacity: 0.7;
+		pointer-events: none;
+	}
+
+	.server-topline {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+		position: relative;
+	}
+
+	.server-identity {
+		display: flex;
+		align-items: center;
+		gap: 0.85rem;
+	}
+
+	.flag-badge {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.35rem;
+		height: 2.35rem;
+		border-radius: 999px;
+		background: rgba(255, 255, 255, 0.07);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+		flex-shrink: 0;
+	}
+
+	.flag-badge img {
+		width: 1.65rem;
+		height: 1.65rem;
+		display: block;
+	}
+
+	.server-identity h3 {
+		font-size: 1rem;
+		font-weight: 600;
+		letter-spacing: -0.02em;
+		margin-bottom: 0.25rem;
+	}
+
+	.server-identity p {
+		font-size: 0.8rem;
+		color: var(--text-muted);
+	}
+
+	.server-state {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.75rem;
+		color: var(--text-muted);
+		white-space: nowrap;
+	}
+
+	.server-state-dot {
+		width: 0.48rem;
+		height: 0.48rem;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.28);
+		box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.12);
+		animation: pulse 2s infinite;
+	}
+
+	.server-state[data-state="online"] .server-state-dot {
+		background: var(--accent-color);
+		box-shadow: 0 0 10px rgba(252, 238, 167, 0.36);
+	}
+
+	.server-state[data-state="offline"] .server-state-dot {
+		background: #ff8d8d;
+		box-shadow: 0 0 10px rgba(255, 141, 141, 0.3);
+	}
+
+	.metric-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.95rem;
+		margin-top: 0.2rem;
+		position: relative;
+	}
+
+	.metric-row {
+		display: flex;
+		flex-direction: column;
+		gap: 0.45rem;
+	}
+
+	.metric-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		font-size: 0.8rem;
+		letter-spacing: 0.03em;
+	}
+
+	.metric-head span:first-child {
+		color: var(--text-muted);
+		text-transform: uppercase;
+	}
+
+	.metric-head span:last-child {
+		font-variant-numeric: tabular-nums;
+	}
+
+	.metric-bar-track {
+		height: 4px;
+		border-radius: 999px;
+		background: rgba(255, 255, 255, 0.08);
+		overflow: hidden;
+	}
+
+	.metric-bar-fill {
+		height: 100%;
+		width: 0%;
+		border-radius: inherit;
+		background: rgba(252, 238, 167, 0.9);
+		box-shadow: 0 0 12px rgba(252, 238, 167, 0.22);
+		transition: width 0.55s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+	}
+
+	.metric-bar-fill[data-tone="warn"] {
+		background: #ffd27d;
+		box-shadow: 0 0 12px rgba(255, 210, 125, 0.24);
+	}
+
+	.metric-bar-fill[data-tone="alert"] {
+		background: #ff8d8d;
+		box-shadow: 0 0 12px rgba(255, 141, 141, 0.24);
+	}
+
+	.metric-bar-fill[data-tone="idle"] {
+		background: rgba(255, 255, 255, 0.22);
+		box-shadow: none;
+	}
+
+	.server-footer {
+		margin-top: auto;
+		padding-top: 0.4rem;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		font-size: 0.74rem;
+		color: var(--text-muted);
+	}
+
+	.server-caption {
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+		color: rgba(255, 255, 255, 0.48);
+	}
+
+	.server-card.is-offline {
+		background: rgba(12, 12, 12, 0.16);
+	}
+
+	.server-card.is-offline .server-card-glow {
+		opacity: 0.25;
+	}
+
+	@media (max-width: 900px) {
+		.monitor-header {
+			flex-direction: column;
+		}
+
+		.monitor-meta {
+			align-items: flex-start;
+			min-width: 0;
+		}
+
+		.server-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (max-width: 600px) {
+		.monitor-shell {
+			padding: 1.2rem;
+		}
+
+		.monitor-header h2 {
+			font-size: 1.45rem;
+		}
+
+		.monitor-description {
+			font-size: 0.88rem;
+		}
+
+		.server-card {
+			padding: 1rem;
+			min-height: auto;
+		}
+	}
+</style>

@@ -1,0 +1,30 @@
+{
+  "listen_host": "127.0.0.1",
+  "listen_port": 19529,
+  "refresh_interval_seconds": 15,
+  "nodes": [
+    {
+      "id": "hk-01",
+      "name": "Hong Kong 01",
+      "region": "Hong Kong",
+      "flag": "hk",
+      "mode": "local"
+    },
+    {
+      "id": "hk-02",
+      "name": "Hong Kong 02",
+      "region": "Hong Kong",
+      "flag": "hk",
+      "mode": "ssh",
+      "ssh_target": "root@example-hk-02"
+    },
+    {
+      "id": "us-01",
+      "name": "US 01",
+      "region": "United States",
+      "flag": "us",
+      "mode": "ssh",
+      "ssh_target": "root@example-us-01"
+    }
+  ]
+}
