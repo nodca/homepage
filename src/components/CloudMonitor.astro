@@ -18,10 +18,11 @@ const servers = [
 			<div class="status-node" data-server-id={server.id}>
 				<span class="node-id">[{server.id.toUpperCase()}]</span>
 				<span class="node-state" data-node-state>BOOT</span>
-				<span class="node-metric">C:<span data-node-cpu>--</span>%</span>
-				<span class="node-metric">M:<span data-node-mem>--</span>%</span>
-				<span class="node-hardware">
-					HW:<span data-node-cores>--</span>C/<span data-node-ram>--</span>G
+				<span class="node-metric node-metric-cpu">
+					<span data-node-cores>--</span>C:<span data-node-cpu>--</span>%
+				</span>
+				<span class="node-metric node-metric-mem">
+					<span data-node-ram>--</span>G:<span data-node-mem>--</span>%
 				</span>
 			</div>
 		))}
@@ -177,7 +178,7 @@ const servers = [
 
 	.status-node {
 		display: flex;
-		gap: 0.85rem;
+		gap: 0.58rem;
 		opacity: 0.85;
 		font-weight: 500;
 	}
@@ -188,14 +189,17 @@ const servers = [
 	}
 
 	.node-metric {
-		width: 4.5rem;
 		display: inline-block;
+		white-space: nowrap;
+		opacity: 0.82;
 	}
 
-	.node-hardware {
-		min-width: 10rem;
-		opacity: 0.78;
-		white-space: nowrap;
+	.node-metric-cpu {
+		min-width: 5.8rem;
+	}
+
+	.node-metric-mem {
+		min-width: 7.4rem;
 	}
 
 	@media (max-width: 720px) {
