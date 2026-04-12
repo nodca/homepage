@@ -15,9 +15,15 @@ const servers = [
 
 	<div class="status-nodes">
 		{servers.map((server) => (
-			<span class="status-node" data-server-id={server.id}>
-				{server.name}: BOOT
-			</span>
+			<div class="status-node" data-server-id={server.id}>
+				<span class="node-id">[{server.id.toUpperCase()}]</span>
+				<span class="node-state" data-node-state>BOOT</span>
+				<span class="node-metric">C:<span data-node-cpu>--</span>%</span>
+				<span class="node-metric">M:<span data-node-mem>--</span>%</span>
+				<span class="node-hardware">
+					HW:<span data-node-cores>--</span>C/<span data-node-ram>--</span>G
+				</span>
+			</div>
 		))}
 	</div>
 </div>
@@ -32,37 +38,62 @@ const servers = [
 		]),
 	);
 
-	const formatPercent = (value) => `${Math.round(value)}`;
+	const formatPercent = (value) => `${Math.round(value).toString().padStart(2, '0')}`;
+	const formatHardwareCount = (value) => `${Math.max(1, Math.round(value))}`;
+	const formatMemoryGb = (value) => {
+		if (!Number.isFinite(value) || value <= 0) return "--";
+		return value.toFixed(1).replace(/\.0$/, "");
+	};
 
 	const setOverallState = (label) => {
 		if (overallLabel) overallLabel.textContent = label;
 	};
 
-	const setNodeLabel = (row, label) => {
-		row.textContent = label;
-	};
-
 	const setRowOffline = (row) => {
-		const serverId = row.getAttribute("data-server-id")?.toUpperCase() ?? "NODE";
-		setNodeLabel(row, `${serverId}: DOWN`);
+		const stateNode = row.querySelector("[data-node-state]");
+		const cpuNode = row.querySelector("[data-node-cpu]");
+		const memNode = row.querySelector("[data-node-mem]");
+		const coreNode = row.querySelector("[data-node-cores]");
+		const ramNode = row.querySelector("[data-node-ram]");
+		if (stateNode) stateNode.textContent = "DOWN  ";
+		if (cpuNode) cpuNode.textContent = "--";
+		if (memNode) memNode.textContent = "--";
+		if (coreNode) coreNode.textContent = "--";
+		if (ramNode) ramNode.textContent = "--";
 	};
 
 	const updateRow = (server) => {
 		const row = rows.get(server.id);
 		if (!row) return;
 
-		const serverId = server.id.toUpperCase();
 		const isOnline = server.status === "online";
+		const stateNode = row.querySelector("[data-node-state]");
+		const cpuNode = row.querySelector("[data-node-cpu]");
+		const memNode = row.querySelector("[data-node-mem]");
+		const coreNode = row.querySelector("[data-node-cores]");
+		const ramNode = row.querySelector("[data-node-ram]");
+
 		if (!isOnline) {
-			setNodeLabel(row, `${serverId}: DOWN`);
+			if (stateNode) stateNode.textContent = "DOWN  ";
+			if (cpuNode) cpuNode.textContent = "--";
+			if (memNode) memNode.textContent = "--";
+			if (coreNode) coreNode.textContent = "--";
+			if (ramNode) ramNode.textContent = "--";
 			return;
 		}
 
 		const cpu = Number(server.metrics?.cpu ?? 0);
 		const memory = Number(server.metrics?.memory ?? 0);
+		const cpuCores = Number(server.hardware?.cpuCores ?? 0);
+		const totalMemoryGb = Number(server.hardware?.totalMemoryGb ?? 0);
 		const safeCpu = Number.isFinite(cpu) ? Math.max(0, Math.min(100, cpu)) : 0;
 		const safeMemory = Number.isFinite(memory) ? Math.max(0, Math.min(100, memory)) : 0;
-		setNodeLabel(row, `${serverId}: ONLINE C${formatPercent(safeCpu)} M${formatPercent(safeMemory)}`);
+
+		if (stateNode) stateNode.textContent = "ONLINE";
+		if (cpuNode) cpuNode.textContent = formatPercent(safeCpu);
+		if (memNode) memNode.textContent = formatPercent(safeMemory);
+		if (coreNode) coreNode.textContent = Number.isFinite(cpuCores) && cpuCores > 0 ? formatHardwareCount(cpuCores) : "--";
+		if (ramNode) ramNode.textContent = formatMemoryGb(totalMemoryGb);
 	};
 
 	let nextPollTimer = null;
@@ -73,7 +104,7 @@ const servers = [
 	};
 
 	async function fetchStatus() {
-		setOverallState("FETCHING");
+		setOverallState("FETCHING...");
 
 		try {
 			const response = await fetch("/api/server-status", {
@@ -119,49 +150,68 @@ const servers = [
 <style>
 	.status-bar {
 		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
+		align-items: flex-start;
 		justify-content: space-between;
-		gap: 0.55rem 1.2rem;
+		gap: 1rem;
 		font-family: var(--mono);
-		font-size: 0.7rem;
-		letter-spacing: 0.16em;
+		font-size: 0.78rem;
+		letter-spacing: 0.12em;
 		text-transform: uppercase;
-		color: var(--text-secondary);
+		color: var(--text-primary);
 		text-shadow: var(--mono-shadow);
 	}
 
-	.status-head,
+	.status-head {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		opacity: 0.95;
+	}
+
 	.status-nodes {
 		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.45rem 0.8rem;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 0.5rem;
 	}
 
-	.status-prefix,
-	.status-overall,
 	.status-node {
+		display: flex;
+		gap: 0.85rem;
+		opacity: 0.85;
+		font-weight: 500;
+	}
+	
+	.node-state {
+		width: 4rem;
+		text-align: left;
+	}
+
+	.node-metric {
+		width: 4.5rem;
+		display: inline-block;
+	}
+
+	.node-hardware {
+		min-width: 10rem;
+		opacity: 0.78;
 		white-space: nowrap;
-	}
-
-	.status-overall {
-		color: var(--text-primary);
-	}
-
-	.status-node {
-		opacity: 0.88;
 	}
 
 	@media (max-width: 720px) {
 		.status-bar {
-			font-size: 0.64rem;
-			gap: 0.4rem 0.8rem;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 1rem;
+			font-size: 0.72rem;
+		}
+		.status-nodes {
+			align-items: flex-start;
 		}
 
-		.status-head,
-		.status-nodes {
-			gap: 0.3rem 0.6rem;
+		.status-node {
+			flex-wrap: wrap;
+			row-gap: 0.2rem;
 		}
 	}
 </style>
