@@ -10,14 +10,13 @@ const servers = [
 	<div class="monitor-shell glass-panel">
 		<div class="monitor-header">
 			<div class="monitor-copy">
-				<p class="monitor-kicker">Live Infrastructure</p>
-				<h2 id="cloud-monitor-title">Cloud Monitor</h2>
-				<p class="monitor-description">三台云服务器的实时负载摘要，持续轮询真实 CPU、内存与磁盘使用情况。</p>
+				<p class="monitor-kicker">Server Journal</p>
+				<h2 id="cloud-monitor-title">Cloud Notes</h2>
+				<p class="monitor-description">三台云服务器的状态摘记，安静地轮询 CPU、内存与磁盘使用率。</p>
 			</div>
 			<div class="monitor-meta">
 				<div class="monitor-live-pill" data-monitor-overall-state="loading">
-					<span class="monitor-live-dot" aria-hidden="true"></span>
-					<span data-monitor-overall-label>Collecting live data</span>
+					<span data-monitor-overall-label>[ 整理中 ]</span>
 				</div>
 				<p class="monitor-updated" data-last-updated>等待首个采样</p>
 			</div>
@@ -26,7 +25,6 @@ const servers = [
 		<div class="server-grid">
 			{servers.map((server) => (
 				<article class="server-card" data-server-id={server.id}>
-					<div class="server-card-glow" aria-hidden="true"></div>
 					<header class="server-topline">
 						<div class="server-identity">
 							<span class="flag-badge">
@@ -42,8 +40,7 @@ const servers = [
 							</div>
 						</div>
 						<div class="server-state" data-state="loading">
-							<span class="server-state-dot" aria-hidden="true"></span>
-							<span data-server-state-label>Loading</span>
+							<span data-server-state-label>[ 载入中 ]</span>
 						</div>
 					</header>
 
@@ -78,8 +75,8 @@ const servers = [
 					</div>
 
 					<footer class="server-footer">
-						<span class="server-caption">Live telemetry</span>
-						<span data-server-updated>Waiting for refresh</span>
+						<span class="server-caption">最近采样</span>
+						<span data-server-updated>等待刷新</span>
 					</footer>
 				</article>
 			))}
@@ -122,7 +119,7 @@ const servers = [
 		if (!value) return "等待首个采样";
 		const date = new Date(value);
 		if (Number.isNaN(date.getTime())) return "等待首个采样";
-		return `更新于 ${timestampFormatter.format(date)}`;
+		return `记录于 ${timestampFormatter.format(date)}`;
 	};
 
 	const setOverallState = (state, label) => {
@@ -130,14 +127,14 @@ const servers = [
 		if (overallLabel) overallLabel.textContent = label;
 	};
 
-	const setCardOffline = (card, message = "Unavailable") => {
+	const setCardOffline = (card, message = "[ 未连接 ]") => {
 		card.classList.add("is-offline");
 		const state = card.querySelector(".server-state");
 		if (state) state.setAttribute("data-state", "offline");
 		const stateLabel = card.querySelector("[data-server-state-label]");
 		if (stateLabel) stateLabel.textContent = message;
 		const footer = card.querySelector("[data-server-updated]");
-		if (footer) footer.textContent = "Awaiting healthy sample";
+		if (footer) footer.textContent = "等待下一次采样";
 		const coresNode = card.querySelector("[data-server-cores]");
 		const memoryTotalNode = card.querySelector("[data-server-memory-total]");
 		if (coresNode) coresNode.textContent = "--";
@@ -171,7 +168,7 @@ const servers = [
 		if (state) state.setAttribute("data-state", isOnline ? "online" : "offline");
 
 		const stateLabel = card.querySelector("[data-server-state-label]");
-		if (stateLabel) stateLabel.textContent = isOnline ? "Live" : "Offline";
+		if (stateLabel) stateLabel.textContent = isOnline ? "[ 运行中 ]" : "[ 离线 ]";
 
 		const footer = card.querySelector("[data-server-updated]");
 		if (footer) footer.textContent = formatTimestamp(server.updatedAt);
@@ -209,7 +206,7 @@ const servers = [
 	};
 
 	async function fetchStatus() {
-		setOverallState("loading", "Refreshing live data");
+		setOverallState("loading", "[ 更新中 ]");
 
 		try {
 			const response = await fetch("/api/server-status", {
@@ -238,8 +235,8 @@ const servers = [
 			setOverallState(
 				onlineCount === totalCount ? "online" : "degraded",
 				onlineCount === totalCount
-					? "All systems reporting"
-					: `${onlineCount}/${totalCount} servers reporting`,
+					? "[ 全部正常 ]"
+					: `[ ${onlineCount}/${totalCount} 在线 ]`,
 			);
 
 			if (updatedLabel) {
@@ -249,9 +246,9 @@ const servers = [
 			scheduleNextPoll(payload.refreshIntervalSeconds ?? 15);
 		} catch (error) {
 			console.error("Failed to load server status", error);
-			setOverallState("offline", "Live data temporarily unavailable");
+			setOverallState("offline", "[ 暂不可用 ]");
 			if (updatedLabel) {
-				updatedLabel.textContent = "暂时无法刷新，正在重试";
+				updatedLabel.textContent = "暂时无法刷新，稍后重试";
 			}
 			for (const [, card] of cards.entries()) {
 				setCardOffline(card);
@@ -267,143 +264,95 @@ const servers = [
 
 <style>
 	.cloud-monitor {
-		animation: monitorFadeInUp 1s ease-out 0.3s both;
-	}
-
-	@keyframes monitorFadeInUp {
-		from { opacity: 0; transform: translateY(20px); }
-		to { opacity: 1; transform: translateY(0); }
+		width: 100%;
 	}
 
 	.monitor-shell {
-		position: relative;
-		padding: 1.6rem;
-		overflow: hidden;
-		background:
-			radial-gradient(circle at top left, rgba(252, 238, 167, 0.12), transparent 34%),
-			linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
-	}
-
-	.monitor-shell::before {
-		content: "";
-		position: absolute;
-		inset: 0;
-		background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), transparent 45%);
-		pointer-events: none;
+		padding: clamp(1.6rem, 3vw, 2.4rem);
 	}
 
 	.monitor-header {
-		position: relative;
 		display: flex;
-		align-items: flex-start;
+		align-items: flex-end;
 		justify-content: space-between;
-		gap: 1.5rem;
+		gap: 2rem;
 		margin-bottom: 1.5rem;
 	}
 
 	.monitor-copy {
-		max-width: 36rem;
+		max-width: 38rem;
 	}
 
 	.monitor-kicker {
 		font-size: 0.72rem;
 		text-transform: uppercase;
-		letter-spacing: 0.16em;
-		color: rgba(252, 238, 167, 0.76);
+		letter-spacing: 0.18em;
+		color: var(--text-soft);
 		margin-bottom: 0.7rem;
 	}
 
 	.monitor-header h2 {
-		font-size: clamp(1.6rem, 2vw, 2rem);
+		font-family: "Iowan Old Style", "Palatino Linotype", "Noto Serif SC", "Source Han Serif SC", serif;
+		font-size: clamp(1.85rem, 3vw, 2.35rem);
+		line-height: 1;
 		letter-spacing: -0.04em;
-		margin-bottom: 0.45rem;
+		font-weight: 600;
+		margin-bottom: 0.5rem;
 	}
 
 	.monitor-description {
 		color: var(--text-muted);
-		font-size: 0.95rem;
-		line-height: 1.65;
+		font-size: 0.96rem;
+		line-height: 1.7;
 		max-width: 34rem;
 	}
 
 	.monitor-meta {
 		display: flex;
 		flex-direction: column;
-		align-items: flex-end;
-		gap: 0.7rem;
-		min-width: 12.5rem;
+		align-items: flex-start;
+		gap: 0.65rem;
+		min-width: 11rem;
 	}
 
 	.monitor-live-pill {
 		display: inline-flex;
-		align-items: center;
-		gap: 0.55rem;
-		padding: 0.5rem 0.8rem;
-		border-radius: 999px;
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		background: rgba(255, 255, 255, 0.04);
-		font-size: 0.78rem;
+		padding: 0.32rem 0.58rem;
+		border-radius: 4px;
+		border: 1px solid var(--panel-border);
+		background: rgba(255, 255, 255, 0.6);
+		font-size: 0.74rem;
+		letter-spacing: 0.08em;
 		color: var(--text-main);
 		white-space: nowrap;
 	}
 
-	.monitor-live-dot {
-		width: 0.55rem;
-		height: 0.55rem;
-		border-radius: 50%;
-		background: rgba(255, 255, 255, 0.3);
-		box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.14);
-		animation: pulse 2s infinite;
-	}
-
-	.monitor-live-pill[data-monitor-overall-state="online"] .monitor-live-dot {
-		background: var(--accent-color);
-		box-shadow: 0 0 12px rgba(252, 238, 167, 0.45);
-	}
-
-	.monitor-live-pill[data-monitor-overall-state="degraded"] .monitor-live-dot {
-		background: #ffd27d;
-		box-shadow: 0 0 12px rgba(255, 210, 125, 0.34);
-	}
-
-	.monitor-live-pill[data-monitor-overall-state="offline"] .monitor-live-dot {
-		background: #ff8d8d;
-		box-shadow: 0 0 12px rgba(255, 141, 141, 0.32);
-	}
-
 	.monitor-updated {
 		font-size: 0.78rem;
-		color: var(--text-muted);
+		color: var(--text-soft);
 	}
 
 	.server-grid {
-		position: relative;
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 1rem;
+		gap: 0.9rem;
 	}
 
 	.server-card {
-		position: relative;
-		padding: 1.15rem;
-		border-radius: 18px;
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		background: rgba(12, 12, 12, 0.22);
-		overflow: hidden;
-		min-height: 16rem;
+		padding: 1.2rem;
+		border-radius: 6px;
+		border: 1px solid var(--panel-border);
+		background: rgba(255, 255, 255, 0.62);
+		min-height: 14rem;
 		display: flex;
 		flex-direction: column;
-		gap: 1.1rem;
+		gap: 1rem;
+		transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
 	}
 
-	.server-card-glow {
-		position: absolute;
-		inset: auto auto 0 -12%;
-		width: 9rem;
-		height: 9rem;
-		background: radial-gradient(circle, rgba(252, 238, 167, 0.16), transparent 72%);
-		opacity: 0.7;
-		pointer-events: none;
+	.server-card:hover {
+		background: rgba(255, 255, 255, 0.8);
+		border-color: var(--panel-border-strong);
 	}
 
 	.server-topline {
@@ -411,12 +360,11 @@ const servers = [
 		align-items: flex-start;
 		justify-content: space-between;
 		gap: 1rem;
-		position: relative;
 	}
 
 	.server-identity {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		gap: 0.85rem;
 	}
 
@@ -424,26 +372,26 @@ const servers = [
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: 2.35rem;
-		height: 2.35rem;
-		border-radius: 999px;
-		background: rgba(255, 255, 255, 0.07);
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+		width: 2.15rem;
+		height: 2.15rem;
+		border-radius: 6px;
+		background: rgba(255, 255, 255, 0.82);
+		border: 1px solid rgba(92, 77, 55, 0.08);
 		flex-shrink: 0;
 	}
 
 	.flag-badge img {
-		width: 1.65rem;
-		height: 1.65rem;
+		width: 1.4rem;
+		height: 1.4rem;
 		display: block;
 	}
 
 	.server-identity h3 {
+		font-family: "Iowan Old Style", "Palatino Linotype", "Noto Serif SC", "Source Han Serif SC", serif;
 		font-size: 1rem;
 		font-weight: 600;
-		letter-spacing: -0.02em;
-		margin-bottom: 0.25rem;
+		letter-spacing: -0.03em;
+		margin-bottom: 0.2rem;
 	}
 
 	.server-copy {
@@ -451,8 +399,8 @@ const servers = [
 	}
 
 	.server-specs {
-		font-size: 0.78rem;
-		color: var(--text-muted);
+		font-size: 0.76rem;
+		color: var(--text-soft);
 		font-variant-numeric: tabular-nums;
 		letter-spacing: 0.02em;
 		white-space: nowrap;
@@ -461,122 +409,103 @@ const servers = [
 	.server-spec-divider {
 		display: inline-block;
 		margin: 0 0.28rem;
-		color: rgba(255, 255, 255, 0.34);
+		color: rgba(92, 77, 55, 0.34);
 	}
 
 	.server-state {
 		display: inline-flex;
-		align-items: center;
-		gap: 0.4rem;
-		font-size: 0.75rem;
-		color: var(--text-muted);
+		font-size: 0.72rem;
+		letter-spacing: 0.08em;
+		color: var(--text-soft);
 		white-space: nowrap;
+		padding-left: 0.75rem;
+		border-left: 1px solid rgba(92, 77, 55, 0.08);
 	}
 
-	.server-state-dot {
-		width: 0.48rem;
-		height: 0.48rem;
-		border-radius: 50%;
-		background: rgba(255, 255, 255, 0.28);
-		box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.12);
-		animation: pulse 2s infinite;
+	.server-state[data-state="online"] {
+		color: var(--text-main);
 	}
 
-	.server-state[data-state="online"] .server-state-dot {
-		background: var(--accent-color);
-		box-shadow: 0 0 10px rgba(252, 238, 167, 0.36);
-	}
-
-	.server-state[data-state="offline"] .server-state-dot {
-		background: #ff8d8d;
-		box-shadow: 0 0 10px rgba(255, 141, 141, 0.3);
+	.server-state[data-state="offline"] {
+		color: rgba(120, 81, 65, 0.86);
 	}
 
 	.metric-list {
 		display: flex;
 		flex-direction: column;
-		gap: 0.95rem;
-		margin-top: 0.2rem;
-		position: relative;
+		gap: 0.85rem;
+		margin-top: 0.15rem;
 	}
 
 	.metric-row {
 		display: flex;
 		flex-direction: column;
-		gap: 0.45rem;
+		gap: 0.35rem;
 	}
 
 	.metric-head {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		font-size: 0.8rem;
-		letter-spacing: 0.03em;
+		font-size: 0.78rem;
+		letter-spacing: 0.06em;
 	}
 
 	.metric-head span:first-child {
-		color: var(--text-muted);
+		color: var(--text-soft);
 		text-transform: uppercase;
 	}
 
 	.metric-head span:last-child {
 		font-variant-numeric: tabular-nums;
+		color: var(--text-main);
 	}
 
 	.metric-bar-track {
-		height: 4px;
-		border-radius: 999px;
-		background: rgba(255, 255, 255, 0.08);
+		height: 2px;
+		background: rgba(92, 77, 55, 0.12);
 		overflow: hidden;
 	}
 
 	.metric-bar-fill {
 		height: 100%;
 		width: 0%;
-		border-radius: inherit;
-		background: rgba(252, 238, 167, 0.9);
-		box-shadow: 0 0 12px rgba(252, 238, 167, 0.22);
-		transition: width 0.55s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+		background: rgba(79, 63, 46, 0.38);
+		transition: width 0.55s ease, background-color 0.2s ease;
 	}
 
 	.metric-bar-fill[data-tone="warn"] {
-		background: #ffd27d;
-		box-shadow: 0 0 12px rgba(255, 210, 125, 0.24);
+		background: rgba(133, 104, 62, 0.46);
 	}
 
 	.metric-bar-fill[data-tone="alert"] {
-		background: #ff8d8d;
-		box-shadow: 0 0 12px rgba(255, 141, 141, 0.24);
+		background: rgba(145, 86, 68, 0.54);
 	}
 
 	.metric-bar-fill[data-tone="idle"] {
-		background: rgba(255, 255, 255, 0.22);
-		box-shadow: none;
+		background: rgba(92, 77, 55, 0.18);
 	}
 
 	.server-footer {
 		margin-top: auto;
-		padding-top: 0.4rem;
+		padding-top: 0.5rem;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 0.75rem;
+		gap: 0.6rem;
 		font-size: 0.74rem;
-		color: var(--text-muted);
+		color: var(--text-soft);
+		border-top: 1px solid rgba(92, 77, 55, 0.08);
 	}
 
 	.server-caption {
 		text-transform: uppercase;
 		letter-spacing: 0.12em;
-		color: rgba(255, 255, 255, 0.48);
+		color: var(--text-soft);
 	}
 
 	.server-card.is-offline {
-		background: rgba(12, 12, 12, 0.16);
-	}
-
-	.server-card.is-offline .server-card-glow {
-		opacity: 0.25;
+		background: rgba(255, 255, 255, 0.52);
 	}
 
 	@media (max-width: 900px) {
@@ -589,6 +518,12 @@ const servers = [
 			min-width: 0;
 		}
 
+		.server-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (max-width: 640px) {
 		.server-grid {
 			grid-template-columns: 1fr;
 		}
