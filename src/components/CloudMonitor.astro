@@ -19,10 +19,14 @@ const servers = [
 				<span class="node-id">[{server.id.toUpperCase()}]</span>
 				<span class="node-state" data-node-state>BOOT</span>
 				<span class="node-metric node-metric-cpu">
-					<span data-node-cores>--</span>C:<span data-node-cpu>--</span>%
+					<span class="node-hardware"><span data-node-cores>--</span>C</span>
+					<span class="node-metric-label">C:</span>
+					<span data-node-cpu>--</span>%
 				</span>
 				<span class="node-metric node-metric-mem">
-					<span data-node-ram>--</span>G:<span data-node-mem>--</span>%
+					<span class="node-hardware"><span data-node-ram>--</span>G</span>
+					<span class="node-metric-label">M:</span>
+					<span data-node-mem>--</span>%
 				</span>
 			</div>
 		))}
@@ -165,6 +169,7 @@ const servers = [
 	.status-head {
 		display: flex;
 		align-items: center;
+		flex-wrap: wrap;
 		gap: 0.6rem;
 		opacity: 0.95;
 	}
@@ -178,9 +183,12 @@ const servers = [
 
 	.status-node {
 		display: flex;
+		align-items: baseline;
 		gap: 0.58rem;
 		opacity: 0.85;
 		font-weight: 500;
+		white-space: nowrap;
+		font-variant-numeric: tabular-nums;
 	}
 	
 	.node-state {
@@ -189,33 +197,87 @@ const servers = [
 	}
 
 	.node-metric {
-		display: inline-block;
+		display: inline-flex;
+		align-items: baseline;
+		gap: 0;
 		white-space: nowrap;
 		opacity: 0.82;
 	}
 
+	.node-hardware {
+		opacity: 0.72;
+		margin-right: 0;
+	}
+
+	.node-hardware::after {
+		content: ":";
+	}
+
+	.node-metric-label {
+		display: none;
+		opacity: 0.9;
+	}
+
 	.node-metric-cpu {
-		min-width: 5.8rem;
+		min-width: 7rem;
 	}
 
 	.node-metric-mem {
-		min-width: 7.4rem;
+		min-width: 8.2rem;
 	}
 
-	@media (max-width: 720px) {
+	@media (max-width: 768px) {
 		.status-bar {
 			flex-direction: column;
 			align-items: flex-start;
-			gap: 1rem;
-			font-size: 0.72rem;
+			justify-content: flex-start;
+			gap: 0.35rem;
+			font-size: 0.65rem;
+			letter-spacing: 0.08em;
+			max-width: 100%;
 		}
+
+		.status-head {
+			gap: 0.35rem;
+		}
+
+		.status-overall {
+			display: none;
+		}
+
 		.status-nodes {
 			align-items: flex-start;
+			gap: 0.16rem;
 		}
 
 		.status-node {
-			flex-wrap: wrap;
-			row-gap: 0.2rem;
+			gap: 0.34rem;
+		}
+
+		.node-state {
+			width: 3.9rem;
+		}
+
+		.node-hardware {
+			display: none;
+		}
+
+		.node-hardware::after {
+			content: none;
+		}
+
+		.node-metric-label {
+			display: inline;
+		}
+
+		.node-metric {
+			min-width: 0;
+			gap: 0;
+		}
+
+		.node-metric-cpu,
+		.node-metric-mem {
+			min-width: 0;
 		}
 	}
 </style>

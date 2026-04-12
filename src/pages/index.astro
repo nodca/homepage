@@ -281,6 +281,86 @@ const targets = [
 		}
 	}
 
+	@media (max-width: 768px) {
+		.vn-stage {
+			min-height: 100svh;
+			grid-template-rows: auto 1fr auto auto;
+			gap: clamp(0.65rem, 3vw, 1rem);
+			padding:
+				calc(0.9rem + env(safe-area-inset-top, 0px))
+				clamp(1rem, 4vw, 1.35rem)
+				calc(1.35rem + env(safe-area-inset-bottom, 0px));
+		}
+
+		.status-shell {
+			max-width: min(14rem, calc(100vw - 2rem));
+		}
+
+		.subtitle-fade {
+			height: 50vh;
+			background:
+				linear-gradient(
+					to top,
+					rgba(0, 0, 0, 0.74) 0%,
+					rgba(0, 0, 0, 0.52) 34%,
+					rgba(0, 0, 0, 0.14) 78%,
+					rgba(0, 0, 0, 0) 100%
+				);
+		}
+
+		.subtitle-shell {
+			grid-row: 3;
+			align-self: end;
+			max-width: min(24rem, 100%);
+		}
+
+		.subtitle-kicker {
+			font-size: 0.72rem;
+			margin-bottom: 0.8rem;
+			letter-spacing: 0.2em;
+		}
+
+		.subtitle-title {
+			font-size: clamp(3.2rem, 15vw, 3.8rem);
+			margin-bottom: 0.75rem;
+		}
+
+		.subtitle-line {
+			font-size: 0.96rem;
+			line-height: 1.72;
+		}
+
+		.subtitle-note {
+			max-width: 20rem;
+			margin-top: 1rem;
+			font-size: 0.68rem;
+			letter-spacing: 0.11em;
+		}
+
+		.edge-nav {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, max-content));
+			gap: 0.55rem 1rem;
+			align-items: start;
+			justify-content: start;
+			width: fit-content;
+			max-width: min(22rem, 100%);
+			margin-top: 0.95rem;
+			padding-bottom: 0;
+		}
+
+		.edge-nav a {
+			gap: 0.35rem;
+			font-size: 0.72rem;
+			letter-spacing: 0.14em;
+			opacity: 0.92;
+		}
+
+		.nav-arrow {
+			display: none;
+		}
+	}
+
 	@media (max-width: 640px) {
 		body {
 			background:
@@ -288,17 +368,36 @@ const targets = [
 				url("/bg-poster.jpg") center / cover no-repeat fixed;
 		}
 
-		.subtitle-fade {
-			height: 50vh;
-		}
-
-		.subtitle-title {
-			font-size: 2.8rem;
-		}
-
 		.subtitle-line {
-			font-size: 0.98rem;
-			line-height: 1.8;
+			font-size: 0.92rem;
+			line-height: 1.68;
+		}
+
+		.edge-nav {
+			gap: 0.45rem 0.85rem;
+		}
+
+		.edge-nav a {
+			font-size: 0.68rem;
+		}
+	}
+
+	@media (max-width: 420px) {
+		.subtitle-title {
+			font-size: clamp(3rem, 16vw, 3.45rem);
+		}
+
+		.edge-nav {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			width: 100%;
+		}
+
+		.edge-nav a {
+			min-width: 0;
+		}
+
+		.nav-label {
+			overflow-wrap: anywhere;
 		}
 	}
 </style>
