@@ -2,12 +2,12 @@
 import CloudMonitor from "../components/CloudMonitor.astro";
 
 const targets = [
-	{ href: "https://blog.cyb1.org", label: "BLOG" },
-	{ href: "https://s.cyb1.org", label: "TOOLS" },
-	{ href: "https://huggingface.co/wcn123/Qwen3.5-27B-WebNovel-Writer-zh", label: "WRITER_MODEL" },
-	{ href: "https://github.com/nodca/routellm", label: "ROUTE_LLM" },
-	{ href: "http://38.76.207.72:3000", label: "GIT_SEARCH" },
-	{ href: "https://github.com/nodca", label: "GITHUB" },
+	{ href: "https://blog.cyb1.org", label: "Blog" },
+	{ href: "https://s.cyb1.org", label: "Tools" },
+	{ href: "https://huggingface.co/wcn123/Qwen3.5-27B-WebNovel-Writer-zh", label: "Writer Model" },
+	{ href: "https://github.com/nodca/routellm", label: "RouteLLM" },
+	{ href: "http://38.76.207.72:3000", label: "Git Search" },
+	{ href: "https://github.com/nodca", label: "GitHub" },
 ];
 ---
 
@@ -26,76 +26,49 @@ const targets = [
 		<video autoplay muted loop playsinline poster="/bg-poster.jpg" class="video-bg" data-nosnippet>
 			<source src="/bg.mp4" type="video/mp4" />
 		</video>
-		<div class="overlay" aria-hidden="true"></div>
+		<div class="subtitle-fade" aria-hidden="true"></div>
 
-		<div class="vf-corner vf-tl" aria-hidden="true"></div>
-		<div class="vf-corner vf-tr" aria-hidden="true"></div>
-		<div class="vf-corner vf-bl" aria-hidden="true"></div>
-		<div class="vf-corner vf-br" aria-hidden="true"></div>
+		<main class="vn-stage">
+			<header class="status-shell" aria-label="Top status bar">
+				<CloudMonitor />
+			</header>
 
-		<div class="vf-center" aria-hidden="true">
-			<span class="vf-center-h"></span>
-			<span class="vf-center-v"></span>
-			<span class="vf-center-box"></span>
-		</div>
-
-		<main class="hud-shell">
-			<section class="hud-identity" aria-label="System identity">
-				<div class="module-kicker">CYB1.ORG / NODCA</div>
-				<h1>NODCA</h1>
-				<p class="module-copy">
-					[SYS_DESC] DEVELOPER, WRITER, AND BUILDER OF USEFUL INTERNET THINGS.
+			<section class="subtitle-shell" aria-label="Profile subtitle">
+				<p class="subtitle-kicker">CYB1.ORG</p>
+				<h1 class="subtitle-title">nodca</h1>
+				<p class="subtitle-line">Developer, writer, and builder of useful internet things.</p>
+				<p class="subtitle-line subtitle-line-zh">
+					中文网文写作模型已经做完一版，后续随缘优化，眼下去做新的东西。
 				</p>
-				<p class="module-copy module-copy-zh">
-					[FIELD_NOTE] 中文网文写作模型已经完成一版，现在把注意力切回新的实验、工具和更有意思的构建目标。
-				</p>
-				<div class="identity-meta">
-					<span>PROFILE_01</span>
-					<span>OBSERVER_MODE</span>
-				</div>
+				<p class="subtitle-note">A personal log of tools, models, writing, and whatever comes next.</p>
 			</section>
 
-			<aside class="hud-monitor-slot" aria-label="Server journal">
-				<div class="module-kicker module-kicker-right">SERVER JOURNAL</div>
-				<CloudMonitor />
-			</aside>
-
-			<nav class="hud-targets" aria-label="External links">
-				<div class="module-kicker">TARGETS</div>
-				<div class="target-list">
-					{
-						targets.map((target, index) => (
-							<a href={target.href} target="_blank" rel="noreferrer">
-								<span class="target-cursor" aria-hidden="true">█</span>
-								<span class="target-index">[{String(index + 1).padStart(2, "0")}]</span>
-								<span class="target-name">{target.label}</span>
-							</a>
-						))
-					}
-				</div>
+			<nav class="edge-nav" aria-label="External links">
+				{
+					targets.map((target) => (
+						<a href={target.href} target="_blank" rel="noreferrer">
+							<span class="nav-arrow" aria-hidden="true">→</span>
+							<span class="nav-label">{target.label}</span>
+						</a>
+					))
+				}
 			</nav>
-
-			<div class="hud-meta" aria-label="Viewfinder metadata">
-				<p>REC // VIEWFINDER ONLINE</p>
-				<p>CENTER FIELD RESERVED FOR BACKGROUND SUBJECT</p>
-				<p>HUD / AR OVERLAY / STATIC FEED</p>
-			</div>
 		</main>
 	</body>
 </html>
 
 <style is:global>
-	@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap");
+	@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+SC:wght@400;500;600&display=swap");
 
 	:root {
-		--hud-ink: rgba(18, 18, 18, 0.92);
-		--hud-ink-strong: rgba(8, 8, 8, 0.98);
-		--hud-line: rgba(18, 18, 18, 0.2);
-		--hud-line-strong: rgba(18, 18, 18, 0.58);
-		--hud-overlay: rgba(255, 255, 255, 0.14);
-		--hud-pad: clamp(1.25rem, 3vw, 2.5rem);
-		--corner-size: clamp(1.4rem, 2.2vw, 2.4rem);
-		--frame-offset: clamp(1rem, 2.6vw, 2rem);
+		--text-primary: rgba(255, 250, 244, 0.97);
+		--text-secondary: rgba(255, 250, 244, 0.8);
+		--text-muted: rgba(255, 250, 244, 0.68);
+		--serif-display: "Cormorant Garamond", "Noto Serif SC", "Source Han Serif SC", serif;
+		--serif-body: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+		--mono: "JetBrains Mono", "SFMono-Regular", "Cascadia Mono", monospace;
+		--subtitle-shadow: 0 2px 15px rgba(0, 0, 0, 0.42), 0 0 40px rgba(0, 0, 0, 0.2);
+		--mono-shadow: 0 1px 10px rgba(0, 0, 0, 0.42), 0 0 24px rgba(0, 0, 0, 0.16);
 	}
 
 	* {
@@ -105,17 +78,16 @@ const targets = [
 	}
 
 	html {
-		font-family: "JetBrains Mono", "SFMono-Regular", "Cascadia Code", "PingFang SC", monospace;
-		background: #f3f0eb;
+		background: #050505;
 	}
 
 	body {
 		min-height: 100vh;
-		color: var(--hud-ink);
-		text-transform: uppercase;
-		letter-spacing: 0.06em;
+		color: var(--text-primary);
 		position: relative;
 		overflow: hidden;
+		background: #050505;
+		isolation: isolate;
 	}
 
 	a {
@@ -129,273 +101,136 @@ const targets = [
 		height: 100%;
 		object-fit: cover;
 		object-position: center;
-		z-index: -3;
-	}
-
-	.overlay {
-		position: fixed;
-		inset: 0;
-		background: var(--hud-overlay);
-		z-index: -2;
-	}
-
-	.vf-corner {
-		position: fixed;
-		width: var(--corner-size);
-		height: var(--corner-size);
-		border: 1px solid var(--hud-ink-strong);
 		pointer-events: none;
-		z-index: 5;
+		z-index: 0;
 	}
 
-	.vf-tl {
-		top: var(--frame-offset);
-		left: var(--frame-offset);
-		border-right: 0;
-		border-bottom: 0;
-	}
-
-	.vf-tr {
-		top: var(--frame-offset);
-		right: var(--frame-offset);
-		border-left: 0;
-		border-bottom: 0;
-	}
-
-	.vf-bl {
-		bottom: var(--frame-offset);
-		left: var(--frame-offset);
-		border-right: 0;
-		border-top: 0;
-	}
-
-	.vf-br {
-		bottom: var(--frame-offset);
-		right: var(--frame-offset);
-		border-left: 0;
-		border-top: 0;
-	}
-
-	.vf-center {
+	.subtitle-fade {
 		position: fixed;
-		inset: 50% auto auto 50%;
-		width: 3.5rem;
-		height: 3.5rem;
-		transform: translate(-50%, -50%);
+		inset: auto 0 0 0;
+		height: min(42vh, 24rem);
+		background: linear-gradient(to top, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.17) 36%, rgba(0, 0, 0, 0) 82%);
 		pointer-events: none;
+		z-index: 1;
+	}
+
+	.vn-stage {
+		min-height: 100vh;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		grid-template-rows: auto 1fr auto;
+		gap: clamp(1rem, 2vw, 2rem);
+		padding: clamp(1rem, 2vw, 1.8rem) clamp(1.25rem, 3vw, 2.6rem) clamp(1.8rem, 4vw, 2.9rem);
+		position: relative;
 		z-index: 2;
 	}
 
-	.vf-center-h,
-	.vf-center-v,
-	.vf-center-box {
-		position: absolute;
-		display: block;
-		background: var(--hud-line-strong);
+	.status-shell {
+		grid-column: 1 / -1;
+		grid-row: 1;
 	}
 
-	.vf-center-h {
-		top: 50%;
-		left: 50%;
-		width: 2rem;
-		height: 1px;
-		transform: translate(-50%, -50%);
-	}
-
-	.vf-center-v {
-		top: 50%;
-		left: 50%;
-		width: 1px;
-		height: 2rem;
-		transform: translate(-50%, -50%);
-	}
-
-	.vf-center-box {
-		inset: calc(50% - 0.4rem);
-		width: 0.8rem;
-		height: 0.8rem;
-		border: 1px solid var(--hud-line);
-		background: transparent;
-	}
-
-	.hud-shell {
-		min-height: 100vh;
-		padding: calc(var(--frame-offset) + 1rem);
-		display: grid;
-		grid-template-columns: minmax(16rem, 24rem) 1fr minmax(18rem, 25rem);
-		grid-template-rows: auto 1fr auto;
-		gap: clamp(1.5rem, 3vw, 3rem);
-		position: relative;
-		z-index: 4;
-	}
-
-	.hud-identity,
-	.hud-monitor-slot,
-	.hud-targets,
-	.hud-meta {
-		align-self: start;
-	}
-
-	.hud-identity {
+	.subtitle-shell {
 		grid-column: 1;
-		grid-row: 1;
-		max-width: 24rem;
-	}
-
-	.hud-identity h1 {
-		font-size: clamp(2.4rem, 5vw, 4rem);
-		line-height: 0.9;
-		margin: 1.2rem 0 1rem;
-		font-weight: 700;
-		letter-spacing: 0.08em;
-	}
-
-	.module-kicker {
-		display: flex;
-		align-items: center;
-		gap: 0.85rem;
-		font-size: 0.7rem;
-		font-weight: 500;
-		line-height: 1;
-	}
-
-	.module-kicker::after {
-		content: "";
-		flex: 1;
-		height: 1px;
-		background: var(--hud-line);
-	}
-
-	.module-kicker-right {
-		justify-content: flex-end;
-	}
-
-	.module-kicker-right::after {
-		display: none;
-	}
-
-	.module-kicker-right::before {
-		content: "";
-		flex: 1;
-		height: 1px;
-		background: var(--hud-line);
-	}
-
-	.module-copy {
-		max-width: 24rem;
-		font-size: 0.76rem;
-		line-height: 1.8;
-	}
-
-	.module-copy + .module-copy {
-		margin-top: 0.85rem;
-	}
-
-	.module-copy-zh {
-		text-transform: none;
-		letter-spacing: 0.03em;
-	}
-
-	.identity-meta {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 1rem;
-		margin-top: 1.3rem;
-		padding-top: 0.85rem;
-		border-top: 1px solid var(--hud-line);
-		font-size: 0.68rem;
-	}
-
-	.hud-monitor-slot {
-		grid-column: 3;
-		grid-row: 1;
-		justify-self: end;
-		width: min(100%, 25rem);
-	}
-
-	.hud-targets {
-		grid-column: 1 / 3;
 		grid-row: 3;
 		align-self: end;
+		max-width: min(54rem, 70vw);
+		padding-right: 2rem;
 	}
 
-	.target-list {
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		column-gap: 1.25rem;
-		row-gap: 0;
-		margin-top: 1rem;
-		max-width: 52rem;
+	.subtitle-kicker {
+		font-family: var(--mono);
+		font-size: 0.74rem;
+		letter-spacing: 0.22em;
+		text-transform: uppercase;
+		color: var(--text-secondary);
+		text-shadow: var(--mono-shadow);
+		margin-bottom: 1rem;
 	}
 
-	.target-list a {
-		display: grid;
-		grid-template-columns: auto auto 1fr;
+	.subtitle-title {
+		font-family: var(--serif-display);
+		font-size: clamp(3.4rem, 9vw, 7rem);
+		line-height: 0.84;
+		font-weight: 600;
+		letter-spacing: 0.03em;
+		text-transform: none;
+		text-shadow: var(--subtitle-shadow);
+		margin-bottom: 0.9rem;
+	}
+
+	.subtitle-line {
+		font-family: var(--serif-body);
+		font-size: clamp(1.02rem, 1.7vw, 1.3rem);
+		line-height: 1.9;
+		letter-spacing: 0.03em;
+		text-transform: none;
+		color: var(--text-primary);
+		text-shadow: var(--subtitle-shadow);
+	}
+
+	.subtitle-line-zh {
+		color: var(--text-secondary);
+	}
+
+	.subtitle-note {
+		margin-top: 1.15rem;
+		font-family: var(--mono);
+		font-size: 0.72rem;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--text-muted);
+		text-shadow: var(--mono-shadow);
+	}
+
+	.edge-nav {
+		grid-column: 2;
+		grid-row: 3;
+		align-self: end;
+		justify-self: end;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 0.5rem;
+		min-width: 13rem;
+		padding-bottom: 0.1rem;
+	}
+
+	.edge-nav a {
+		display: inline-flex;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 0.85rem 0 0.8rem;
-		border-top: 1px solid var(--hud-line);
+		justify-content: flex-end;
+		gap: 0.55rem;
+		font-family: var(--mono);
+		font-size: 0.82rem;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
 		text-decoration: none;
-		position: relative;
-		transition: color 0.18s ease, padding-left 0.18s ease;
+		color: var(--text-secondary);
+		text-shadow: var(--mono-shadow);
+		opacity: 0.7;
+		transition: opacity 0.18s ease, color 0.18s ease;
 	}
 
-	.target-list a::after {
-		content: "";
-		position: absolute;
-		left: 0;
-		bottom: 0;
-		width: 0;
-		height: 1px;
-		background: var(--hud-ink-strong);
-		transition: width 0.18s ease;
-	}
-
-	.target-list a:hover,
-	.target-list a:focus-visible {
-		color: var(--hud-ink-strong);
-		padding-left: 0.55rem;
+	.edge-nav a:hover,
+	.edge-nav a:focus-visible {
+		color: var(--text-primary);
+		opacity: 1;
 		outline: none;
 	}
 
-	.target-list a:hover::after,
-	.target-list a:focus-visible::after {
-		width: 100%;
-	}
-
-	.target-cursor {
+	.nav-arrow {
 		opacity: 0;
 		transition: opacity 0.18s ease;
 	}
 
-	.target-list a:hover .target-cursor,
-	.target-list a:focus-visible .target-cursor {
+	.edge-nav a:hover .nav-arrow,
+	.edge-nav a:focus-visible .nav-arrow {
 		opacity: 1;
 	}
 
-	.target-index {
-		font-size: 0.72rem;
-		color: var(--hud-line-strong);
-	}
-
-	.target-name {
-		font-size: 0.82rem;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.hud-meta {
-		grid-column: 3;
-		grid-row: 3;
-		align-self: end;
-		justify-self: end;
+	.nav-label {
 		text-align: right;
-		font-size: 0.68rem;
-		line-height: 1.8;
-		padding-top: 0.85rem;
-		border-top: 1px solid var(--hud-line);
-		min-width: 18rem;
 	}
 
 	@media (max-width: 900px) {
@@ -403,65 +238,54 @@ const targets = [
 			overflow: auto;
 		}
 
-		.hud-shell {
+		.vn-stage {
 			grid-template-columns: 1fr;
-			grid-template-rows: auto;
-			padding: calc(var(--frame-offset) + 0.7rem);
+			grid-template-rows: auto 1fr auto auto;
+			padding-bottom: 2rem;
 		}
 
-		.hud-identity,
-		.hud-monitor-slot,
-		.hud-targets,
-		.hud-meta {
-			grid-column: auto;
-			grid-row: auto;
-			width: 100%;
+		.subtitle-shell,
+		.edge-nav {
+			grid-column: 1;
+			justify-self: start;
 			max-width: none;
-			justify-self: stretch;
+			padding-right: 0;
 		}
 
-		.hud-monitor-slot {
-			margin-top: 2rem;
-		}
-
-		.target-list {
-			grid-template-columns: 1fr;
-			max-width: none;
-		}
-
-		.hud-meta {
-			text-align: left;
+		.edge-nav {
+			grid-row: 4;
+			align-items: flex-start;
+			margin-top: 0.8rem;
 			min-width: 0;
-			margin-top: 1rem;
 		}
 
-		.vf-center {
-			display: none;
+		.edge-nav a {
+			justify-content: flex-start;
+		}
+
+		.nav-label {
+			text-align: left;
 		}
 	}
 
 	@media (max-width: 640px) {
-		.video-bg {
-			display: none;
-		}
-
 		body {
 			background:
-				linear-gradient(rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.86)),
+				linear-gradient(rgba(8, 8, 8, 0.26), rgba(8, 8, 8, 0.18)),
 				url("/bg-poster.jpg") center / cover no-repeat fixed;
 		}
 
-		.overlay {
-			background: rgba(255, 255, 255, 0.08);
+		.subtitle-fade {
+			height: 50vh;
 		}
 
-		.vf-corner {
-			width: 1rem;
-			height: 1rem;
+		.subtitle-title {
+			font-size: 2.8rem;
 		}
 
-		.hud-identity h1 {
-			font-size: 2.1rem;
+		.subtitle-line {
+			font-size: 0.98rem;
+			line-height: 1.8;
 		}
 	}
 </style>

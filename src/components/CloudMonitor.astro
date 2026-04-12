@@ -6,35 +6,18 @@ const servers = [
 ];
 ---
 
-<div class="hud-monitor" data-cloud-monitor>
-	<div class="monitor-frame">
-		<div class="monitor-radar" aria-hidden="true">
-			<span class="radar-ring radar-outer"></span>
-			<span class="radar-ring radar-inner"></span>
-			<span class="radar-axis radar-axis-h"></span>
-			<span class="radar-axis radar-axis-v"></span>
-			{servers.map((server) => (
-				<span class={`radar-point point-${server.id}`} data-radar-point={server.id}></span>
-			))}
-		</div>
-
-		<div class="monitor-summary">
-			<div class="monitor-head">
-				<span class="monitor-label">[SYS.MONITOR]</span>
-				<span class="monitor-overall" data-monitor-overall-label>BOOTING</span>
-			</div>
-			<div class="monitor-subline">EDGE_NODES / TEXT_FEED / NO_PANEL</div>
-		</div>
+<div class="status-bar" data-cloud-monitor>
+	<div class="status-head">
+		<span class="status-prefix">SYS.MONITOR</span>
+		<span class="status-divider">//</span>
+		<span class="status-overall" data-monitor-overall-label>BOOTING</span>
 	</div>
 
-	<div class="monitor-rows">
+	<div class="status-nodes">
 		{servers.map((server) => (
-			<div class="m-row" data-server-id={server.id} data-state="idle">
-				<span class="m-name">[{server.name}]</span>
-				<span class="m-state" data-server-state-label>SYS:--</span>
-				<span class="m-metric">C:<span data-metric-value="cpu">--</span></span>
-				<span class="m-metric">M:<span data-metric-value="memory">--</span></span>
-			</div>
+			<span class="status-node" data-server-id={server.id}>
+				{server.name}: BOOT
+			</span>
 		))}
 	</div>
 </div>
@@ -48,59 +31,41 @@ const servers = [
 			row,
 		]),
 	);
-	const radarPoints = new Map(
-		Array.from(monitorRoot?.querySelectorAll("[data-radar-point]") ?? []).map((point) => [
-			point.getAttribute("data-radar-point"),
-			point,
-		]),
-	);
 
-	const metricKeys = ["cpu", "memory"];
-	let nextPollTimer = null;
-
-	const formatPercent = (value) => `${Math.round(value)}%`;
+	const formatPercent = (value) => `${Math.round(value)}`;
 
 	const setOverallState = (label) => {
 		if (overallLabel) overallLabel.textContent = label;
 	};
 
-	const setVisualState = (serverId, state) => {
-		const row = rows.get(serverId);
-		const point = radarPoints.get(serverId);
-		if (row) row.dataset.state = state;
-		if (point) point.dataset.state = state;
+	const setNodeLabel = (row, label) => {
+		row.textContent = label;
 	};
 
-	const setRowOffline = (row, message = "SYS:ERR") => {
-		const serverId = row.getAttribute("data-server-id");
-		const stateLabel = row.querySelector("[data-server-state-label]");
-		if (stateLabel) stateLabel.textContent = message;
-
-		for (const metricKey of metricKeys) {
-			const valueNode = row.querySelector(`[data-metric-value="${metricKey}"]`);
-			if (valueNode) valueNode.textContent = "--";
-		}
-
-		if (serverId) setVisualState(serverId, "offline");
+	const setRowOffline = (row) => {
+		const serverId = row.getAttribute("data-server-id")?.toUpperCase() ?? "NODE";
+		setNodeLabel(row, `${serverId}: DOWN`);
 	};
 
 	const updateRow = (server) => {
 		const row = rows.get(server.id);
 		if (!row) return;
 
+		const serverId = server.id.toUpperCase();
 		const isOnline = server.status === "online";
-		const stateLabel = row.querySelector("[data-server-state-label]");
-		if (stateLabel) stateLabel.textContent = isOnline ? "SYS:OK" : "SYS:ERR";
-
-		for (const metricKey of metricKeys) {
-			const metricValue = Number(server.metrics?.[metricKey] ?? 0);
-			const safeValue = Number.isFinite(metricValue) ? Math.max(0, Math.min(100, metricValue)) : 0;
-			const valueNode = row.querySelector(`[data-metric-value="${metricKey}"]`);
-			if (valueNode) valueNode.textContent = isOnline ? formatPercent(safeValue) : "--";
+		if (!isOnline) {
+			setNodeLabel(row, `${serverId}: DOWN`);
+			return;
 		}
 
-		setVisualState(server.id, isOnline ? "online" : "offline");
+		const cpu = Number(server.metrics?.cpu ?? 0);
+		const memory = Number(server.metrics?.memory ?? 0);
+		const safeCpu = Number.isFinite(cpu) ? Math.max(0, Math.min(100, cpu)) : 0;
+		const safeMemory = Number.isFinite(memory) ? Math.max(0, Math.min(100, memory)) : 0;
+		setNodeLabel(row, `${serverId}: ONLINE C${formatPercent(safeCpu)} M${formatPercent(safeMemory)}`);
 	};
+
+	let nextPollTimer = null;
 
 	const scheduleNextPoll = (intervalSeconds = 15) => {
 		window.clearTimeout(nextPollTimer);
@@ -134,188 +99,69 @@ const servers = [
 				}
 			}
 
-			setOverallState(onlineCount === totalCount ? "ALL_GREEN" : `WARN_${onlineCount}/${totalCount}`);
+			setOverallState(onlineCount === totalCount ? "ALL ONLINE" : `${onlineCount}/${totalCount} ONLINE`);
 			scheduleNextPoll(payload.refreshIntervalSeconds ?? 15);
 		} catch (error) {
 			console.error("Failed to load server status", error);
-			setOverallState("LINK_LOST");
+			setOverallState("LINK LOST");
 			for (const [, row] of rows.entries()) {
-				setRowOffline(row, "SYS:DOWN");
+				setRowOffline(row);
 			}
 			scheduleNextPoll(15);
 		}
 	}
 
 	if (monitorRoot) {
-		for (const server of rows.keys()) {
-			setVisualState(server, "idle");
-		}
 		fetchStatus();
 	}
 </script>
 
 <style>
-	.hud-monitor {
+	.status-bar {
 		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		font-size: 0.72rem;
-		color: var(--hud-ink);
-	}
-
-	.monitor-frame {
-		display: grid;
-		grid-template-columns: auto 1fr;
-		gap: 1rem;
-		align-items: start;
-		padding-bottom: 0.9rem;
-		border-bottom: 1px solid var(--hud-line);
-	}
-
-	.monitor-radar {
-		position: relative;
-		width: 5.75rem;
-		height: 5.75rem;
-		flex-shrink: 0;
-	}
-
-	.radar-ring,
-	.radar-axis,
-	.radar-point {
-		position: absolute;
-		display: block;
-	}
-
-	.radar-ring {
-		border: 1px solid var(--hud-line);
-	}
-
-	.radar-outer {
-		inset: 0;
-	}
-
-	.radar-inner {
-		inset: 1.1rem;
-	}
-
-	.radar-axis-h {
-		top: 50%;
-		left: 0;
-		width: 100%;
-		height: 1px;
-		background: var(--hud-line);
-		transform: translateY(-50%);
-	}
-
-	.radar-axis-v {
-		top: 0;
-		left: 50%;
-		width: 1px;
-		height: 100%;
-		background: var(--hud-line);
-		transform: translateX(-50%);
-	}
-
-	.radar-point {
-		width: 0.38rem;
-		height: 0.38rem;
-		border: 1px solid var(--hud-line-strong);
-		background: transparent;
-		opacity: 0.48;
-		transition: opacity 0.18s ease, border-color 0.18s ease;
-	}
-
-	.point-hk-01 {
-		top: 24%;
-		left: 68%;
-	}
-
-	.point-hk-02 {
-		top: 40%;
-		left: 58%;
-	}
-
-	.point-us-01 {
-		top: 66%;
-		left: 34%;
-	}
-
-	.radar-point[data-state="online"] {
-		opacity: 1;
-		border-color: var(--hud-ink-strong);
-	}
-
-	.radar-point[data-state="offline"] {
-		opacity: 0.28;
-	}
-
-	.monitor-summary {
-		display: flex;
-		flex-direction: column;
-		gap: 0.45rem;
-		min-width: 0;
-	}
-
-	.monitor-head {
-		display: flex;
-		justify-content: space-between;
-		gap: 0.75rem;
-		font-size: 0.7rem;
-	}
-
-	.monitor-label {
-		color: var(--hud-line-strong);
-	}
-
-	.monitor-overall {
-		text-align: right;
-	}
-
-	.monitor-subline {
-		line-height: 1.7;
-		color: var(--hud-line-strong);
-	}
-
-	.monitor-rows {
-		display: flex;
-		flex-direction: column;
-	}
-
-	.m-row {
-		display: grid;
-		grid-template-columns: 5.3rem 4.6rem minmax(0, 1fr) minmax(0, 1fr);
-		gap: 0.65rem;
+		flex-wrap: wrap;
 		align-items: center;
-		padding: 0.55rem 0;
-		border-bottom: 1px solid var(--hud-line);
+		justify-content: space-between;
+		gap: 0.55rem 1.2rem;
+		font-family: var(--mono);
+		font-size: 0.7rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--text-secondary);
+		text-shadow: var(--mono-shadow);
 	}
 
-	.m-row[data-state="offline"] {
-		color: var(--hud-line-strong);
+	.status-head,
+	.status-nodes {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.45rem 0.8rem;
 	}
 
-	.m-row[data-state="idle"] {
-		color: var(--hud-line-strong);
-	}
-
-	.m-name,
-	.m-state,
-	.m-metric {
+	.status-prefix,
+	.status-overall,
+	.status-node {
 		white-space: nowrap;
 	}
 
-	@media (max-width: 640px) {
-		.monitor-frame {
-			grid-template-columns: 1fr;
+	.status-overall {
+		color: var(--text-primary);
+	}
+
+	.status-node {
+		opacity: 0.88;
+	}
+
+	@media (max-width: 720px) {
+		.status-bar {
+			font-size: 0.64rem;
+			gap: 0.4rem 0.8rem;
 		}
 
-		.monitor-radar {
-			width: 4.6rem;
-			height: 4.6rem;
-		}
-
-		.m-row {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
+		.status-head,
+		.status-nodes {
+			gap: 0.3rem 0.6rem;
 		}
 	}
 </style>
