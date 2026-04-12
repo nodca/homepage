@@ -1,203 +1,105 @@
 ---
 const servers = [
-	{ id: "hk-01", name: "Hong Kong 01", region: "Hong Kong", flag: "/flags/hk.svg" },
-	{ id: "hk-02", name: "Hong Kong 02", region: "Hong Kong", flag: "/flags/hk.svg" },
-	{ id: "us-01", name: "US 01", region: "United States", flag: "/flags/us.svg" },
+	{ id: "hk-01", name: "HK-01" },
+	{ id: "hk-02", name: "HK-02" },
+	{ id: "us-01", name: "US-01" },
 ];
 ---
 
-<section class="cloud-monitor" aria-labelledby="cloud-monitor-title" data-cloud-monitor>
-	<div class="monitor-shell glass-panel">
-		<div class="monitor-header">
-			<div class="monitor-copy">
-				<p class="monitor-kicker">Server Journal</p>
-				<h2 id="cloud-monitor-title">Cloud Notes</h2>
-				<p class="monitor-description">三台云服务器的状态摘记，安静地轮询 CPU、内存与磁盘使用率。</p>
-			</div>
-			<div class="monitor-meta">
-				<div class="monitor-live-pill" data-monitor-overall-state="loading">
-					<span data-monitor-overall-label>[ 整理中 ]</span>
-				</div>
-				<p class="monitor-updated" data-last-updated>等待首个采样</p>
-			</div>
-		</div>
-
-		<div class="server-grid">
+<div class="hud-monitor" data-cloud-monitor>
+	<div class="monitor-frame">
+		<div class="monitor-radar" aria-hidden="true">
+			<span class="radar-ring radar-outer"></span>
+			<span class="radar-ring radar-inner"></span>
+			<span class="radar-axis radar-axis-h"></span>
+			<span class="radar-axis radar-axis-v"></span>
 			{servers.map((server) => (
-				<article class="server-card" data-server-id={server.id}>
-					<header class="server-topline">
-						<div class="server-identity">
-							<span class="flag-badge">
-								<img src={server.flag} alt={`${server.region} flag`} width="32" height="32" loading="lazy" />
-							</span>
-							<div class="server-copy">
-								<h3>{server.name}</h3>
-								<p class="server-specs">
-									<span data-server-cores>--</span> vCPU
-									<span class="server-spec-divider" aria-hidden="true">·</span>
-									<span data-server-memory-total>--</span> GB RAM
-								</p>
-							</div>
-						</div>
-						<div class="server-state" data-state="loading">
-							<span data-server-state-label>[ 载入中 ]</span>
-						</div>
-					</header>
-
-					<div class="metric-list">
-						<div class="metric-row" data-metric-row>
-							<div class="metric-head">
-								<span>CPU</span>
-								<span data-metric-value="cpu">--%</span>
-							</div>
-							<div class="metric-bar-track" aria-hidden="true">
-								<div class="metric-bar-fill" data-metric-bar="cpu"></div>
-							</div>
-						</div>
-						<div class="metric-row" data-metric-row>
-							<div class="metric-head">
-								<span>Memory</span>
-								<span data-metric-value="memory">--%</span>
-							</div>
-							<div class="metric-bar-track" aria-hidden="true">
-								<div class="metric-bar-fill" data-metric-bar="memory"></div>
-							</div>
-						</div>
-						<div class="metric-row" data-metric-row>
-							<div class="metric-head">
-								<span>Disk</span>
-								<span data-metric-value="disk">--%</span>
-							</div>
-							<div class="metric-bar-track" aria-hidden="true">
-								<div class="metric-bar-fill" data-metric-bar="disk"></div>
-							</div>
-						</div>
-					</div>
-
-					<footer class="server-footer">
-						<span class="server-caption">最近采样</span>
-						<span data-server-updated>等待刷新</span>
-					</footer>
-				</article>
+				<span class={`radar-point point-${server.id}`} data-radar-point={server.id}></span>
 			))}
 		</div>
+
+		<div class="monitor-summary">
+			<div class="monitor-head">
+				<span class="monitor-label">[SYS.MONITOR]</span>
+				<span class="monitor-overall" data-monitor-overall-label>BOOTING</span>
+			</div>
+			<div class="monitor-subline">EDGE_NODES / TEXT_FEED / NO_PANEL</div>
+		</div>
 	</div>
-</section>
+
+	<div class="monitor-rows">
+		{servers.map((server) => (
+			<div class="m-row" data-server-id={server.id} data-state="idle">
+				<span class="m-name">[{server.name}]</span>
+				<span class="m-state" data-server-state-label>SYS:--</span>
+				<span class="m-metric">C:<span data-metric-value="cpu">--</span></span>
+				<span class="m-metric">M:<span data-metric-value="memory">--</span></span>
+			</div>
+		))}
+	</div>
+</div>
 
 <script is:inline>
 	const monitorRoot = document.querySelector("[data-cloud-monitor]");
 	const overallLabel = monitorRoot?.querySelector("[data-monitor-overall-label]");
-	const overallState = monitorRoot?.querySelector("[data-monitor-overall-state]");
-	const updatedLabel = monitorRoot?.querySelector("[data-last-updated]");
-	const cards = new Map(
-		Array.from(monitorRoot?.querySelectorAll("[data-server-id]") ?? []).map((card) => [
-			card.getAttribute("data-server-id"),
-			card,
+	const rows = new Map(
+		Array.from(monitorRoot?.querySelectorAll("[data-server-id]") ?? []).map((row) => [
+			row.getAttribute("data-server-id"),
+			row,
+		]),
+	);
+	const radarPoints = new Map(
+		Array.from(monitorRoot?.querySelectorAll("[data-radar-point]") ?? []).map((point) => [
+			point.getAttribute("data-radar-point"),
+			point,
 		]),
 	);
 
-	const metricKeys = ["cpu", "memory", "disk"];
-	const timestampFormatter = new Intl.DateTimeFormat("zh-CN", {
-		hour: "2-digit",
-		minute: "2-digit",
-		second: "2-digit",
-	});
-	const percentFormatter = new Intl.NumberFormat("zh-CN", {
-		maximumFractionDigits: 1,
-		minimumFractionDigits: 1,
-	});
-	const memoryTotalFormatter = new Intl.NumberFormat("zh-CN", {
-		maximumFractionDigits: 1,
-		minimumFractionDigits: 1,
-	});
-
+	const metricKeys = ["cpu", "memory"];
 	let nextPollTimer = null;
 
-	const formatPercent = (value) => `${percentFormatter.format(value)}%`;
+	const formatPercent = (value) => `${Math.round(value)}%`;
 
-	const formatTimestamp = (value) => {
-		if (!value) return "等待首个采样";
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return "等待首个采样";
-		return `记录于 ${timestampFormatter.format(date)}`;
-	};
-
-	const setOverallState = (state, label) => {
-		if (overallState) overallState.setAttribute("data-monitor-overall-state", state);
+	const setOverallState = (label) => {
 		if (overallLabel) overallLabel.textContent = label;
 	};
 
-	const setCardOffline = (card, message = "[ 未连接 ]") => {
-		card.classList.add("is-offline");
-		const state = card.querySelector(".server-state");
-		if (state) state.setAttribute("data-state", "offline");
-		const stateLabel = card.querySelector("[data-server-state-label]");
+	const setVisualState = (serverId, state) => {
+		const row = rows.get(serverId);
+		const point = radarPoints.get(serverId);
+		if (row) row.dataset.state = state;
+		if (point) point.dataset.state = state;
+	};
+
+	const setRowOffline = (row, message = "SYS:ERR") => {
+		const serverId = row.getAttribute("data-server-id");
+		const stateLabel = row.querySelector("[data-server-state-label]");
 		if (stateLabel) stateLabel.textContent = message;
-		const footer = card.querySelector("[data-server-updated]");
-		if (footer) footer.textContent = "等待下一次采样";
-		const coresNode = card.querySelector("[data-server-cores]");
-		const memoryTotalNode = card.querySelector("[data-server-memory-total]");
-		if (coresNode) coresNode.textContent = "--";
-		if (memoryTotalNode) memoryTotalNode.textContent = "--";
 
 		for (const metricKey of metricKeys) {
-			const valueNode = card.querySelector(`[data-metric-value="${metricKey}"]`);
-			const barNode = card.querySelector(`[data-metric-bar="${metricKey}"]`);
-			if (valueNode) valueNode.textContent = "--%";
-			if (barNode) {
-				barNode.style.width = "0%";
-				barNode.setAttribute("data-tone", "idle");
-			}
+			const valueNode = row.querySelector(`[data-metric-value="${metricKey}"]`);
+			if (valueNode) valueNode.textContent = "--";
 		}
+
+		if (serverId) setVisualState(serverId, "offline");
 	};
 
-	const toneForMetric = (value) => {
-		if (value >= 85) return "alert";
-		if (value >= 65) return "warn";
-		return "normal";
-	};
-
-	const updateCard = (server) => {
-		const card = cards.get(server.id);
-		if (!card) return;
+	const updateRow = (server) => {
+		const row = rows.get(server.id);
+		if (!row) return;
 
 		const isOnline = server.status === "online";
-		card.classList.toggle("is-offline", !isOnline);
-
-		const state = card.querySelector(".server-state");
-		if (state) state.setAttribute("data-state", isOnline ? "online" : "offline");
-
-		const stateLabel = card.querySelector("[data-server-state-label]");
-		if (stateLabel) stateLabel.textContent = isOnline ? "[ 运行中 ]" : "[ 离线 ]";
-
-		const footer = card.querySelector("[data-server-updated]");
-		if (footer) footer.textContent = formatTimestamp(server.updatedAt);
-		const coresNode = card.querySelector("[data-server-cores]");
-		const memoryTotalNode = card.querySelector("[data-server-memory-total]");
-		const cpuCores = Number(server.hardware?.cpuCores ?? 0);
-		const totalMemoryGb = Number(server.hardware?.totalMemoryGb ?? 0);
-		if (coresNode) {
-			coresNode.textContent = isOnline && Number.isFinite(cpuCores) && cpuCores > 0 ? String(cpuCores) : "--";
-		}
-		if (memoryTotalNode) {
-			memoryTotalNode.textContent =
-				isOnline && Number.isFinite(totalMemoryGb) && totalMemoryGb > 0
-					? memoryTotalFormatter.format(totalMemoryGb)
-					: "--";
-		}
+		const stateLabel = row.querySelector("[data-server-state-label]");
+		if (stateLabel) stateLabel.textContent = isOnline ? "SYS:OK" : "SYS:ERR";
 
 		for (const metricKey of metricKeys) {
 			const metricValue = Number(server.metrics?.[metricKey] ?? 0);
 			const safeValue = Number.isFinite(metricValue) ? Math.max(0, Math.min(100, metricValue)) : 0;
-			const valueNode = card.querySelector(`[data-metric-value="${metricKey}"]`);
-			const barNode = card.querySelector(`[data-metric-bar="${metricKey}"]`);
-
-			if (valueNode) valueNode.textContent = isOnline ? formatPercent(safeValue) : "--%";
-			if (barNode) {
-				barNode.style.width = isOnline ? `${safeValue}%` : "0%";
-				barNode.setAttribute("data-tone", isOnline ? toneForMetric(safeValue) : "idle");
-			}
+			const valueNode = row.querySelector(`[data-metric-value="${metricKey}"]`);
+			if (valueNode) valueNode.textContent = isOnline ? formatPercent(safeValue) : "--";
 		}
+
+		setVisualState(server.id, isOnline ? "online" : "offline");
 	};
 
 	const scheduleNextPoll = (intervalSeconds = 15) => {
@@ -206,7 +108,7 @@ const servers = [
 	};
 
 	async function fetchStatus() {
-		setOverallState("loading", "[ 更新中 ]");
+		setOverallState("FETCHING");
 
 		try {
 			const response = await fetch("/api/server-status", {
@@ -218,333 +120,202 @@ const servers = [
 			}
 
 			const payload = await response.json();
-			const servers = Array.isArray(payload.servers) ? payload.servers : [];
-			const onlineCount = servers.filter((server) => server.status === "online").length;
-			const totalCount = servers.length || cards.size;
+			const responseServers = Array.isArray(payload.servers) ? payload.servers : [];
+			const onlineCount = responseServers.filter((server) => server.status === "online").length;
+			const totalCount = responseServers.length || rows.size;
 
-			for (const server of servers) {
-				updateCard(server);
+			for (const server of responseServers) {
+				updateRow(server);
 			}
 
-			for (const [serverId, card] of cards.entries()) {
-				if (!servers.some((server) => server.id === serverId)) {
-					setCardOffline(card);
+			for (const [serverId, row] of rows.entries()) {
+				if (!responseServers.some((server) => server.id === serverId)) {
+					setRowOffline(row);
 				}
 			}
 
-			setOverallState(
-				onlineCount === totalCount ? "online" : "degraded",
-				onlineCount === totalCount
-					? "[ 全部正常 ]"
-					: `[ ${onlineCount}/${totalCount} 在线 ]`,
-			);
-
-			if (updatedLabel) {
-				updatedLabel.textContent = formatTimestamp(payload.generatedAt);
-			}
-
+			setOverallState(onlineCount === totalCount ? "ALL_GREEN" : `WARN_${onlineCount}/${totalCount}`);
 			scheduleNextPoll(payload.refreshIntervalSeconds ?? 15);
 		} catch (error) {
 			console.error("Failed to load server status", error);
-			setOverallState("offline", "[ 暂不可用 ]");
-			if (updatedLabel) {
-				updatedLabel.textContent = "暂时无法刷新，稍后重试";
-			}
-			for (const [, card] of cards.entries()) {
-				setCardOffline(card);
+			setOverallState("LINK_LOST");
+			for (const [, row] of rows.entries()) {
+				setRowOffline(row, "SYS:DOWN");
 			}
 			scheduleNextPoll(15);
 		}
 	}
 
 	if (monitorRoot) {
+		for (const server of rows.keys()) {
+			setVisualState(server, "idle");
+		}
 		fetchStatus();
 	}
 </script>
 
 <style>
-	.cloud-monitor {
-		width: 100%;
-	}
-
-	.monitor-shell {
-		padding: clamp(1.6rem, 3vw, 2.4rem);
-	}
-
-	.monitor-header {
+	.hud-monitor {
 		display: flex;
-		align-items: flex-end;
-		justify-content: space-between;
-		gap: 2rem;
-		margin-bottom: 1.5rem;
-	}
-
-	.monitor-copy {
-		max-width: 38rem;
-	}
-
-	.monitor-kicker {
+		flex-direction: column;
+		gap: 1rem;
 		font-size: 0.72rem;
-		text-transform: uppercase;
-		letter-spacing: 0.18em;
-		color: var(--text-soft);
-		margin-bottom: 0.7rem;
+		color: var(--hud-ink);
 	}
 
-	.monitor-header h2 {
-		font-family: "Iowan Old Style", "Palatino Linotype", "Noto Serif SC", "Source Han Serif SC", serif;
-		font-size: clamp(1.85rem, 3vw, 2.35rem);
-		line-height: 1;
-		letter-spacing: -0.04em;
-		font-weight: 600;
-		margin-bottom: 0.5rem;
-	}
-
-	.monitor-description {
-		color: var(--text-muted);
-		font-size: 0.96rem;
-		line-height: 1.7;
-		max-width: 34rem;
-	}
-
-	.monitor-meta {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 0.65rem;
-		min-width: 11rem;
-	}
-
-	.monitor-live-pill {
-		display: inline-flex;
-		padding: 0.32rem 0.58rem;
-		border-radius: 4px;
-		border: 1px solid var(--panel-border);
-		background: rgba(255, 255, 255, 0.6);
-		font-size: 0.74rem;
-		letter-spacing: 0.08em;
-		color: var(--text-main);
-		white-space: nowrap;
-	}
-
-	.monitor-updated {
-		font-size: 0.78rem;
-		color: var(--text-soft);
-	}
-
-	.server-grid {
+	.monitor-frame {
 		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 0.9rem;
-	}
-
-	.server-card {
-		padding: 1.2rem;
-		border-radius: 6px;
-		border: 1px solid var(--panel-border);
-		background: rgba(255, 255, 255, 0.62);
-		min-height: 14rem;
-		display: flex;
-		flex-direction: column;
+		grid-template-columns: auto 1fr;
 		gap: 1rem;
-		transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+		align-items: start;
+		padding-bottom: 0.9rem;
+		border-bottom: 1px solid var(--hud-line);
 	}
 
-	.server-card:hover {
-		background: rgba(255, 255, 255, 0.8);
-		border-color: var(--panel-border-strong);
-	}
-
-	.server-topline {
-		display: flex;
-		align-items: flex-start;
-		justify-content: space-between;
-		gap: 1rem;
-	}
-
-	.server-identity {
-		display: flex;
-		align-items: flex-start;
-		gap: 0.85rem;
-	}
-
-	.flag-badge {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 2.15rem;
-		height: 2.15rem;
-		border-radius: 6px;
-		background: rgba(255, 255, 255, 0.82);
-		border: 1px solid rgba(92, 77, 55, 0.08);
+	.monitor-radar {
+		position: relative;
+		width: 5.75rem;
+		height: 5.75rem;
 		flex-shrink: 0;
 	}
 
-	.flag-badge img {
-		width: 1.4rem;
-		height: 1.4rem;
+	.radar-ring,
+	.radar-axis,
+	.radar-point {
+		position: absolute;
 		display: block;
 	}
 
-	.server-identity h3 {
-		font-family: "Iowan Old Style", "Palatino Linotype", "Noto Serif SC", "Source Han Serif SC", serif;
-		font-size: 1rem;
-		font-weight: 600;
-		letter-spacing: -0.03em;
-		margin-bottom: 0.2rem;
+	.radar-ring {
+		border: 1px solid var(--hud-line);
 	}
 
-	.server-copy {
+	.radar-outer {
+		inset: 0;
+	}
+
+	.radar-inner {
+		inset: 1.1rem;
+	}
+
+	.radar-axis-h {
+		top: 50%;
+		left: 0;
+		width: 100%;
+		height: 1px;
+		background: var(--hud-line);
+		transform: translateY(-50%);
+	}
+
+	.radar-axis-v {
+		top: 0;
+		left: 50%;
+		width: 1px;
+		height: 100%;
+		background: var(--hud-line);
+		transform: translateX(-50%);
+	}
+
+	.radar-point {
+		width: 0.38rem;
+		height: 0.38rem;
+		border: 1px solid var(--hud-line-strong);
+		background: transparent;
+		opacity: 0.48;
+		transition: opacity 0.18s ease, border-color 0.18s ease;
+	}
+
+	.point-hk-01 {
+		top: 24%;
+		left: 68%;
+	}
+
+	.point-hk-02 {
+		top: 40%;
+		left: 58%;
+	}
+
+	.point-us-01 {
+		top: 66%;
+		left: 34%;
+	}
+
+	.radar-point[data-state="online"] {
+		opacity: 1;
+		border-color: var(--hud-ink-strong);
+	}
+
+	.radar-point[data-state="offline"] {
+		opacity: 0.28;
+	}
+
+	.monitor-summary {
+		display: flex;
+		flex-direction: column;
+		gap: 0.45rem;
 		min-width: 0;
 	}
 
-	.server-specs {
-		font-size: 0.76rem;
-		color: var(--text-soft);
-		font-variant-numeric: tabular-nums;
-		letter-spacing: 0.02em;
-		white-space: nowrap;
+	.monitor-head {
+		display: flex;
+		justify-content: space-between;
+		gap: 0.75rem;
+		font-size: 0.7rem;
 	}
 
-	.server-spec-divider {
-		display: inline-block;
-		margin: 0 0.28rem;
-		color: rgba(92, 77, 55, 0.34);
+	.monitor-label {
+		color: var(--hud-line-strong);
 	}
 
-	.server-state {
-		display: inline-flex;
-		font-size: 0.72rem;
-		letter-spacing: 0.08em;
-		color: var(--text-soft);
-		white-space: nowrap;
-		padding-left: 0.75rem;
-		border-left: 1px solid rgba(92, 77, 55, 0.08);
+	.monitor-overall {
+		text-align: right;
 	}
 
-	.server-state[data-state="online"] {
-		color: var(--text-main);
+	.monitor-subline {
+		line-height: 1.7;
+		color: var(--hud-line-strong);
 	}
 
-	.server-state[data-state="offline"] {
-		color: rgba(120, 81, 65, 0.86);
-	}
-
-	.metric-list {
+	.monitor-rows {
 		display: flex;
 		flex-direction: column;
-		gap: 0.85rem;
-		margin-top: 0.15rem;
 	}
 
-	.metric-row {
-		display: flex;
-		flex-direction: column;
-		gap: 0.35rem;
-	}
-
-	.metric-head {
-		display: flex;
+	.m-row {
+		display: grid;
+		grid-template-columns: 5.3rem 4.6rem minmax(0, 1fr) minmax(0, 1fr);
+		gap: 0.65rem;
 		align-items: center;
-		justify-content: space-between;
-		font-size: 0.78rem;
-		letter-spacing: 0.06em;
+		padding: 0.55rem 0;
+		border-bottom: 1px solid var(--hud-line);
 	}
 
-	.metric-head span:first-child {
-		color: var(--text-soft);
-		text-transform: uppercase;
+	.m-row[data-state="offline"] {
+		color: var(--hud-line-strong);
 	}
 
-	.metric-head span:last-child {
-		font-variant-numeric: tabular-nums;
-		color: var(--text-main);
+	.m-row[data-state="idle"] {
+		color: var(--hud-line-strong);
 	}
 
-	.metric-bar-track {
-		height: 2px;
-		background: rgba(92, 77, 55, 0.12);
-		overflow: hidden;
-	}
-
-	.metric-bar-fill {
-		height: 100%;
-		width: 0%;
-		background: rgba(79, 63, 46, 0.38);
-		transition: width 0.55s ease, background-color 0.2s ease;
-	}
-
-	.metric-bar-fill[data-tone="warn"] {
-		background: rgba(133, 104, 62, 0.46);
-	}
-
-	.metric-bar-fill[data-tone="alert"] {
-		background: rgba(145, 86, 68, 0.54);
-	}
-
-	.metric-bar-fill[data-tone="idle"] {
-		background: rgba(92, 77, 55, 0.18);
-	}
-
-	.server-footer {
-		margin-top: auto;
-		padding-top: 0.5rem;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.6rem;
-		font-size: 0.74rem;
-		color: var(--text-soft);
-		border-top: 1px solid rgba(92, 77, 55, 0.08);
-	}
-
-	.server-caption {
-		text-transform: uppercase;
-		letter-spacing: 0.12em;
-		color: var(--text-soft);
-	}
-
-	.server-card.is-offline {
-		background: rgba(255, 255, 255, 0.52);
-	}
-
-	@media (max-width: 900px) {
-		.monitor-header {
-			flex-direction: column;
-		}
-
-		.monitor-meta {
-			align-items: flex-start;
-			min-width: 0;
-		}
-
-		.server-grid {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
+	.m-name,
+	.m-state,
+	.m-metric {
+		white-space: nowrap;
 	}
 
 	@media (max-width: 640px) {
-		.server-grid {
+		.monitor-frame {
 			grid-template-columns: 1fr;
 		}
-	}
 
-	@media (max-width: 600px) {
-		.monitor-shell {
-			padding: 1.2rem;
+		.monitor-radar {
+			width: 4.6rem;
+			height: 4.6rem;
 		}
 
-		.monitor-header h2 {
-			font-size: 1.45rem;
-		}
-
-		.monitor-description {
-			font-size: 0.88rem;
-		}
-
-		.server-card {
-			padding: 1rem;
-			min-height: auto;
+		.m-row {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 	}
 </style>
