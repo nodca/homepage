@@ -16,10 +16,11 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     env:
-      NODE_VERSION: "20"
+      NODE_VERSION: "22"
       SERVER_HOST: ${{ secrets.SERVER_HOST }}
       SERVER_PORT: ${{ secrets.SERVER_PORT }}
       SERVER_USER: ${{ secrets.SERVER_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       DEPLOY_PATH: /var/www/homepage/
 
     steps:
@@ -38,12 +39,23 @@ jobs:
       - name: Build site
         run: npm run build
 
+      - name: Validate deploy secrets
+        run: |
+          : "${SERVER_HOST:?Missing SERVER_HOST secret}"
+          : "${SERVER_USER:?Missing SERVER_USER secret}"
+          : "${SSH_PRIVATE_KEY:?Missing SSH_PRIVATE_KEY secret}"
+
       - name: Setup SSH
         run: |
           install -m 700 -d ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p "${SERVER_PORT:-22}" -H "$SERVER_HOST" >> ~/.ssh/known_hosts
+
+      - name: Prepare target directory
+        run: |
+          ssh -p "${SERVER_PORT:-22}" "${SERVER_USER}@${SERVER_HOST}" \
+            "mkdir -p '${DEPLOY_PATH}'"
 
       - name: Deploy to server
         run: |
