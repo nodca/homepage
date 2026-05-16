@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import shlex
 import subprocess
 import threading
 from dataclasses import dataclass
@@ -164,9 +165,12 @@ def collect_node(node: dict[str, Any]) -> dict[str, Any]:
             "-o",
             "StrictHostKeyChecking=yes",
             ssh_target,
-            "bash -s",
         ]
-        success, snapshot, error_message = run_metrics_command(ssh_command, input_text=METRICS_SCRIPT)
+        script_path = node.get("script_path")
+        if script_path:
+            success, snapshot, error_message = run_metrics_command([*ssh_command, shlex.quote(str(script_path))])
+        else:
+            success, snapshot, error_message = run_metrics_command([*ssh_command, "bash -s"], input_text=METRICS_SCRIPT)
 
     if not success or snapshot is None:
         print(f"[warn] {node['id']}: {error_message or 'Unknown error'}", flush=True)
